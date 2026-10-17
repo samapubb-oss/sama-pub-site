@@ -1,0 +1,98 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-inter: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-jakarta: 'Plus Jakarta Sans', var(--font-inter), sans-serif;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    color-scheme: light;
+  }
+  
+  body {
+    @apply bg-white text-slate-800 antialiased selection:bg-sama-orange selection:text-white font-sans;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading tracking-tight;
+  }
+}
+
+@layer utilities {
+  .text-gradient-orange {
+    @apply bg-gradient-to-r from-sama-orange via-sama-amber to-sama-orange bg-clip-text text-transparent;
+  }
+
+  .text-gradient-navy {
+    @apply bg-gradient-to-r from-sama-navy to-sama-navy-light bg-clip-text text-transparent;
+  }
+
+  .bg-glass-navy {
+    background: rgba(11, 25, 44, 0.75);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .bg-glass-card {
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .glow-mesh-navy {
+    background-image: 
+      radial-gradient(at 10% 20%, rgba(255, 107, 0, 0.12) 0px, transparent 50%),
+      radial-gradient(at 90% 10%, rgba(30, 58, 138, 0.35) 0px, transparent 50%),
+      radial-gradient(at 50% 80%, rgba(11, 25, 44, 1) 0px, transparent 100%);
+  }
+
+  .subtle-grid {
+    background-size: 32px 32px;
+    background-image: 
+      linear-gradient(to right, rgba(226, 232, 240, 0.6) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(226, 232, 240, 0.6) 1px, transparent 1px);
+  }
+
+  .subtle-grid-dark {
+    background-size: 36px 36px;
+    background-image: 
+      linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 9px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0B192C;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1E3A5F;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #FF6B00;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

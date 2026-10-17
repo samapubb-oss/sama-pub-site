@@ -1,0 +1,88 @@
+import { ServiceItem } from "@/types";
+
+export const mockServices: ServiceItem[] = [
+  {
+    id: "media-buying",
+    title: "Media Buying",
+    tagline: "Campagnes ciblées haute rentabilité",
+    description: "Gestion stratégique et optimisation continue de vos campagnes publicitaires sponsorisées pour un maximum de retour sur investissement.",
+    iconName: "Megaphone",
+    platforms: ["Meta Ads", "Google Ads", "TikTok Ads"],
+    features: [
+      "Ciblage précis par audience et intentions d'achat",
+      "Optimisation continue du coût par acquisition (CPA)",
+      "Tests A/B itératifs sur les angles marketing",
+    ],
+    isConfirmed: true,
+  },
+  {
+    id: "publicite-digitale",
+    title: "Publicité Digitale",
+    tagline: "Visibilité multi-plateforme",
+    description: "Déploiement omnicanal sur Facebook, Instagram, TikTok, Google et YouTube pour toucher votre audience là où elle passe son temps.",
+    iconName: "Target",
+    platforms: ["Facebook", "Instagram", "TikTok", "YouTube"],
+    features: [
+      "Domination de votre secteur d'activité",
+      "Formats adaptés au mobile et aux flux vidéo",
+      "Campagnes de reciblage (Retargeting) ultra-efficaces",
+    ],
+    isConfirmed: true,
+  },
+  {
+    id: "creation-contenus",
+    title: "Création de Contenus",
+    tagline: "Visuels & vidéos qui captent l'attention",
+    description: "Production de vidéos publicitaires percutantes, visuels graphiques soignés et textes engageants (copywriting) pour arrêter le scroll.",
+    iconName: "Lightbulb",
+    platforms: ["Reels & TikTok", "Stories", "Bannières"],
+    features: [
+      "Vidéos courtes orientées conversion (UGC & motion)",
+      "Design graphique aux standards internationaux",
+      "Copywriting hypnotique en français et adapté au contexte local",
+    ],
+    isConfirmed: true,
+  },
+  {
+    id: "marketing-digital",
+    title: "Marketing Digital",
+    tagline: "Stratégie globale et notoriété",
+    description: "Approche globale intégrant stratégie de marque, présence sur les réseaux sociaux, acquisition organique et fidélisation par email/SMS.",
+    iconName: "BarChart3",
+    platforms: ["Social Media", "SEO", "Emailing"],
+    features: [
+      "Audit complet de votre présence en ligne",
+      "Stratégie de contenu éditorial performante",
+      "Tunnels de vente et parcours clients automatisés",
+    ],
+    isConfirmed: true,
+  },
+  {
+    id: "acquisition-clients",
+    title: "Acquisition de Clients",
+    tagline: "Flux continu de prospects qualifiés",
+    description: "Génération de leads qualifiés prêts à acheter vos produits ou services pour alimenter votre équipe commerciale en opportunités réelles.",
+    iconName: "Users",
+    platforms: ["Lead Gen Meta", "Landing Pages", "WhatsApp Funnel"],
+    features: [
+      "Formulaires d'acquisition intégrés et landing pages",
+      "Connexion directe avec votre WhatsApp commercial",
+      "Qualification rigoureuse des demandes entrantes",
+    ],
+    isConfirmed: true,
+  },
+  {
+    id: "conseil-strategie",
+    title: "Conseil & Stratégie",
+    tagline: "Accompagnement sur-mesure",
+    description: "Diagnostic personnalisé de votre modèle de croissance, définition de votre feuille de route publicitaire et plan d'action adapté à vos ressources.",
+    iconName: "TrendingUp",
+    platforms: ["Audit", "Consulting", "Coaching équipe"],
+    features: [
+      "Analyse concurrentielle approfondie à Dakar et dans la sous-région",
+      "Plan d'allocation budgétaire optimisé",
+      "Points de suivi réguliers et recommandations proactives",
+    ],
+    isConfirmed: true,
+  },
+];
