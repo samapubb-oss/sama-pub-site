@@ -45,15 +45,12 @@ export const AdminLockScreen: React.FC<AdminLockScreenProps> = ({ onUnlock }) =>
   const [resetSuccessMessage, setResetSuccessMessage] = useState("");
 
   // Accepted credentials (dynamically updated if user resets password)
-  const [validPasswords, setValidPasswords] = useState(["360iq360iq", "admin", "samapub"]);
+  const [validPasswords, setValidPasswords] = useState(["360iq360iq"]);
   const validUsernames = [
     "abdou lahat",
     "abdoulahat",
-    "abdou",
     "abdou lahat diop",
-    "admin",
-    "administrateur",
-    "samapub",
+    "abdou",
   ];
 
   // Handle Login Submit
@@ -64,12 +61,10 @@ export const AdminLockScreen: React.FC<AdminLockScreenProps> = ({ onUnlock }) =>
 
     setTimeout(() => {
       const cleanUser = username.trim().toLowerCase();
-      const cleanPass = password.trim().toLowerCase();
+      const cleanPass = password.trim();
 
-      const isUserValid =
-        cleanUser.length > 0 &&
-        (validUsernames.includes(cleanUser) || cleanUser.includes("admin") || cleanUser.includes("samapub"));
-      const isPassValid = validPasswords.map((p) => p.toLowerCase()).includes(cleanPass);
+      const isUserValid = cleanUser.length > 0 && validUsernames.includes(cleanUser);
+      const isPassValid = validPasswords.includes(cleanPass);
 
       if (isUserValid && isPassValid) {
         try {
