@@ -45,15 +45,15 @@ export const AdminLockScreen: React.FC<AdminLockScreenProps> = ({ onUnlock }) =>
   const [resetSuccessMessage, setResetSuccessMessage] = useState("");
 
   // Accepted credentials (dynamically updated if user resets password)
-  const [validPasswords, setValidPasswords] = useState(["samapub", "samapub2026", "2026", "admin"]);
+  const [validPasswords, setValidPasswords] = useState(["360iq360iq", "admin", "samapub"]);
   const validUsernames = [
-    "admin",
-    "administrateur",
+    "abdou lahat",
+    "abdoulahat",
     "abdou",
     "abdou lahat diop",
-    "diop",
+    "admin",
+    "administrateur",
     "samapub",
-    "samapubb@gmail.com",
   ];
 
   // Handle Login Submit
@@ -119,7 +119,7 @@ export const AdminLockScreen: React.FC<AdminLockScreenProps> = ({ onUnlock }) =>
     setResetError("");
 
     const code = enteredCode.trim();
-    const isValid = code === generatedCode || code === "761422" || code === "123456";
+    const isValid = code.length > 0 && code === generatedCode;
     if (!isValid) {
       setResetError("Code de vérification incorrect ou expiré. Veuillez vérifier votre messagerie.");
       return;
@@ -136,7 +136,7 @@ export const AdminLockScreen: React.FC<AdminLockScreenProps> = ({ onUnlock }) =>
       // Add new password to valid list
       setValidPasswords((prev) => [...prev, newPassword.trim()]);
       setPassword(newPassword.trim());
-      setUsername(resetEmail.includes("admin") ? "admin" : "Abdou Lahat Diop");
+      setUsername("Abdou Lahat");
       setLoading(false);
       setResetSuccessMessage("Votre mot de passe administrateur a été réinitialisé avec succès !");
       setView("success");
