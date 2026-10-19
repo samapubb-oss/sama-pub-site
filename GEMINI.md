@@ -32,9 +32,16 @@
 ### 1. Navigation & Header Sticky (`Header.tsx`)
 - Barre de navigation fixe avec détection dynamique du défilement (`isScrolled > 20px` ajoute ombre et compacte la hauteur).
 - Logo officiel SAMA PUB (`Logo.tsx`) avec monogramme circulaire SP haute fidélité.
-- Menu de navigation desktop avec indicateur actif orange (`bg-sama-orange`).
-- Bouton CTA desktop « Demander un devis » avec icône SVG d'envoi.
-- Menu Drawer Mobile interactif accessible via bouton hamburger / croix avec transition fluide.
+- **Gestion dynamique de l'état actif (Desktop & Mobile)** :
+  - Sur Desktop : Barre de surbrillance orange animée sous le lien actif (`bg-sama-orange`) et texte `font-bold text-slate-900`.
+  - Sur Mobile (Drawer) : Arrière-plan pastel orange (`bg-orange-50`) et typographie `text-sama-orange font-bold shadow-sm` qui se déplace instantanément sur l'élément sélectionné et ne reste plus figé sur « Accueil ».
+  - Verrouillage anti-collision lors du clic (`isClickScrollingRef`) pour empêcher le ScrollSpy d'écraser immédiatement l'état actif pendant l'animation de défilement fluide.
+  - ScrollSpy basé sur `getBoundingClientRect()` calculant l'apparition réelle des sections dans le viewport sans zone morte.
+  - Synchronisation bidirectionnelle avec l'ancre d'URL (`hashchange` & chargement direct).
+- Défilement fluide compensé (`offset -75px`) pour éviter que le header sticky ne masque le titre de la section visée.
+- Bouton CTA desktop « Demander un devis » et capsule mobile « Devis » redirigeant directement vers la page dédiée `/devis` (sans défilement ni scroll jump).
+- Bouton hamburger / croix avec transition fluide et CTA Devis direct.
+- **Fermeture Ergonomique au Clic Extérieur (Mobile)** : Overlay d'arrière-plan semi-transparent et flouté (`bg-slate-900/40 backdrop-blur-xs z-40`) et écouteurs d'événements (`mousedown`, `touchstart`, `Escape`) permettant à l'utilisateur de fermer instantanément le menu mobile en touchant n'importe où sur l'écran en dehors du tiroir, sans être contraint de viser le bouton « X ».
 
 ### 2. Hero Section Haute Conversion (`Hero.tsx`)
 - Arrière-plan sombre immersif (`#07162C` à `#0E284F`) avec halos lumineux radiaux aux teintes orange et bleu nuit.
@@ -60,15 +67,17 @@
   4. **Branding & Identité Visuelle** (Logos, chartes graphiques, direction artistique)
   5. **Audit & Optimisation de Campagnes** (Analyse de comptes publicitaires, optimisation ROAS)
   6. **Stratégie Réseaux Sociaux & Community Management** (Planning éditorial, gestion de communauté)
-- Bannière sombre d'assurance exécutive avec CTA direct « Demander un devis sur-mesure ».
+- **Bannière sombre d'assurance exécutive 100% optimisée pour mobile** :
+  - Sur mobile : alignement naturel des puces à gauche (`items-start text-left`), pastilles orange alignées sur la première ligne de texte sans décalage vertical, et libellé CTA court et percutant (*« Discuter avec un expert »*) tenant impeccablement sur une seule ligne sans retour à la ligne orphelin.
+  - Sur desktop : disposition fluide en une rangée avec libellé complet (*« Discuter de vos objectifs avec un expert »*).
 
 ### 4. Bannière d'Impact & Chiffres Clés (`StatsCounter.tsx`)
 - En-tête harmonisé avec protection contre les retours à la ligne intempestifs sur grand écran (`whitespace-nowrap` sur « parlent d'eux-mêmes »).
-- 4 cartes d'impact présentées en 4 colonnes sur desktop et 2 colonnes sur mobile :
-  - **+250M FCFA** de chiffre d'affaires généré pour nos clients.
-  - **4.2x** ROAS moyen constaté sur les campagnes actives.
-  - **+150K** Prospects qualifiés livrés directement aux équipes commerciales.
-  - **98%** Taux de satisfaction et de fidélisation client.
+- 4 cartes d'impact présentées en 4 colonnes sur desktop et 2 colonnes sur mobile (données réelles vérifiées) :
+  - **+50** Campagnes menées (Meta, Google & TikTok Ads).
+  - **+40** Clients satisfaits (PME, commerces & marques).
+  - **+1M** Personnes touchées (Au Sénégal & en zone UEMOA).
+  - **+3x** En moyenne de ROI (Retour sur dépense publicitaire).
 
 ### 5. Section À Propos & Piliers Stratégiques (`AboutSection.tsx`)
 - Présentation de la mission de l'agence à Dakar.
@@ -119,6 +128,9 @@
 - **Ergonomie Mobile Réfléchie** : Sur mobile, le formulaire est affiché en priorité, suivi de la carte bleue d'informations coordonnées, garantissant une friction minimale à la saisie.
 - **Bouton WhatsApp Officiel** : Intégration du composant vectoriel `WhatsAppIcon` et lien direct pré-formaté vers le numéro vérifié `+221 76 142 28 58`.
 - **Coordonnées Validées** : Badges temporaires « À confirmer » et « À valider » supprimés suite à la confirmation client.
+- **Page Dédiée `/devis` & Ergonomie Mobile Sans Défilement** :
+  - Sur ordinateur (desktop) : Grand en-tête immersif avec fil d'Ariane, H1 sur-mesure et 3 cartes de réassurance (*Réponse sous 24h*, *Stratégie sur-mesure*, *Zéro engagement*).
+  - Sur smartphone (mobile) : L'en-tête Hero est masqué (`hidden lg:block`) et remplacé par un titre ultra-compact de 40px, plaçant les champs du formulaire (**Nom complet**, **Numéro WhatsApp**, **E-mail**) directement sous les yeux de l'utilisateur dès le chargement de la page, sans nécessiter le moindre défilement (*zero-scroll*).
 
 ### 10. Bouton Flottant WhatsApp Permanent (`WhatsAppFloat.tsx`)
 - Positionné en bas à droite (`bottom-6 right-6 z-50`).
@@ -126,12 +138,50 @@
 - Utilise l'icône vectorielle officielle WhatsApp (`WhatsAppIcon.tsx`).
 - Ouvre directement la messagerie avec le numéro officiel `221761422858` et un message d'accroche pré-rempli.
 
-### 11. Footer Institutionnel (`Footer.tsx`)
-- Design sombre (`#0B192C`) épuré et moderne.
-- Navigation complète, réseaux sociaux officiels avec vraies icônes vectorielles SVG (Facebook, Instagram, TikTok — LinkedIn retiré).
-- Liens directs vers les pages officielles de l'agence.
-- Coordonnées physiques et numériques vérifiées à Dakar sans badge temporaire.
-- Protection mobile dédiée : classe `pb-24 sm:pb-12` pour éviter que le bouton flottant WhatsApp ne chevauche les liens du bas de page.
+### 12. Tableau de Bord Administrateur & Gestion des Devis (`/admin` et `/dashboard`)
+- Interface exécutive fidèle au modèle de référence pour la direction de SAMA PUB à Dakar.
+- **Accès sécurisé épuré & Récupération de mot de passe (`AdminLockScreen.tsx`)** : Page de connexion ergonomique et 100% optimisée pour mobile et desktop. Double champ (Nom d'administrateur + Mot de passe), bouton de validation pleine largeur, lien direct **« Mot de passe oublié ? »** sur une seule ligne fluide sans coupure, système complet de récupération par e-mail (`samapubb@gmail.com`) avec code à 6 chiffres. Bouton de fermeture discret en forme de croix (`X`) en haut à droite pour revenir au site public (suppression de l'ancien lien texte en bas). Suppression intégrale de l'encart d'exemple de démonstration (« Accès par défaut »). Logo officiel SP haute définition sans aucun fond noir.
+- **Données 100% Dynamiques & Réelles Supabase (`leads_quotes`)** : Suppression intégrale des fausses données de test (`DEFAULT_LEADS`). Le tableau de bord et les cartes statistiques reflètent strictement le contenu réel de la table Supabase `leads_quotes`. En l'absence de devis (compteur à 0), l'interface affiche des états vides élégants et professionnels (icône dédiée, message explicatif) sans fausse notification ni données factices.
+- **Harmonisation stricte des 5 services officiels** : Seuls les 5 services réels de l'agence issus du formulaire de devis sont représentés dans les données, le tableau, la fiche de détail et l'onglet Services (*Media Buying (Campagnes Pubs)*, *Publicité Multi-canaux*, *Création Vidéos & Visuels*, *Acquisition de Prospects*, *Marketing Digital Global*).
+- **Barre latérale dédiée (`AdminSidebar.tsx`)** : Monogramme officiel SAMA PUB sans fond noir, 5 onglets de navigation (*Vue d'ensemble*, *Demandes de devis*, *Clients*, *Services*, *Paramètres*), indicateur de statut actif orange (`bg-[#FFF7ED]` + barre latérale orange), et drawer responsive pour mobile avec fond flouté.
+- **En-tête supérieur (`AdminHeader.tsx`)** : Titre *Tableau de bord*, cloche de notification dynamique (point pulsé uniquement s'il y a des demandes en attente), profil officiel du dirigeant **ABDOU LAHAT DIOP** avec monogramme SP, menu déroulant *Compte agence* indiquant **« Accès PDG SAMAPUB »**, fermeture automatique au clic extérieur (`click`, `pointerdown`, `touchstart`, `Escape`) et option de déconnexion/verrouillage.
+- **Grille de 4 Cartes KPI Interactives (`AdminStatsGrid.tsx`)** :
+  - *Demandes reçues* : Total des demandes (cliquer affiche tous les devis `all`).
+  - *À traiter* : Demandes nécessitant une réponse sous 24h (cliquer filtre instantanément sur `a_traiter` et affiche exactement tous les devis en attente).
+  - *En cours* : Demandes en cours de qualification (cliquer filtre instantanément sur `en_cours` / `won`).
+  - *Devis envoyés* : Propositions transmises (cliquer filtre instantanément sur `devis_envoye` / `quote_sent`).
+  - **Interactivité complète & Responsive Synchronisé** : Clic direct sur n'importe quelle carte pour filtrer le tableau et défiler en douceur. Le chiffre affiché dans la case du haut (ex: 06) correspond **exactement** au nombre de lignes listées dans le tableau (6 devis correspondants). Réinitialisation automatique du filtre textuel lors du clic sur une carte pour garantir une cohérence parfaite des chiffres. Anneau coloré de surbrillance (`ring-2`), badge pastel (*Tous*, *Filtré*), et bandeau de rappel dans le tableau avec bouton *« Tout afficher »* pour réinitialiser en 1 clic.
+- **Tableau Dynamique des Devis (`LeadsTable.tsx`)** :
+  - Données directes issues de la base Supabase sans aucun fallback statique.
+  - **Classement Chronologique Strict (Date et Heure)** : Les devis sont systématiquement triés par date et heure d'envoi décroissante (`created_at` descendant), garantissant que les demandes les plus récentes apparaissent toujours en tête de liste.
+  - **Affichage de l'Heure d'Envoi Précise** :
+    - Sur Desktop : Colonne dédiée **« Date & Heure »** avec la date en gras et l'heure avec micro-icône horloge orange (`Clock`) en typographie monospace claire.
+    - Sur Mobile : Badge horodaté élégant (`{date} · {heure}`) dans l'en-tête de chaque carte et ligne dédiée *« Heure d'envoi : HH:MM »*.
+  - État vide soigné sur Desktop et Mobile avec icône centrale et consignes claires pour les futures arrivées de prospects.
+  - Bandeau interactif indiquant le statut actif filtré avec compte dynamique des devis correspondants (*« Filtre actif : À traiter (6 devis correspondants) »*).
+  - Recherche instantanée (par nom de client, entreprise, e-mail ou service).
+  - **Harmonisation stricte des statuts (Suppression de « Nouveau »)** : Le terme « Nouveau » a été supprimé des statuts et remplacé par **« À traiter »** comme premier statut d'entrée (pastille bleue). Seuls 3 statuts officiels existent : *À traiter*, *En cours*, *Devis envoyé*.
+  - Filtre synchronisé par statut (*Tous les statuts*, *À traiter*, *En cours*, *Devis envoyé*).
+  - Bouton **Exporter** générant instantanément un fichier CSV normé RFC 4180 avec date et heure d'envoi formatées et encodage UTF-8 BOM pour ouverture directe dans Excel sans problème d'accents.
+  - Avatars monogrammes bicolores, badges de statut pastel et bouton d'action d'inspection rapide (icône en forme d'œil).
+- **Modale d'Inspection Détaillée du Client (`LeadInspectionModal.tsx`)** :
+  - Déclenchée instantanément par un clic sur l'icône en forme d'œil (colonne *Action* sur Desktop ou bouton *Voir le détail* sur Mobile) ainsi que depuis le bouton *Voir dossier* de l'onglet Clients.
+  - **Ergonomie Mobile Réactive Optimisée** : En-tête compact avec monogramme SP et badge `#REQ-XXXXXX`, bannière haute horodatée (*« Envoyé le {date} à {heure} »*), cartes d'informations à hauteur calibrée (évitant tout scroll excessif), et barre d'actions basse unifiée sur une seule ligne (bouton WhatsApp pleine largeur + bouton E-mail + bouton Fermer).
+  - **Menu Déroulant de Statut Épuré** : L'option « Nouveau » a été supprimée tout en haut et remplacée directement par **« À traiter »** (pastille bleue), suivi de *« En cours »* et *« Devis envoyé »*.
+  - **Cartes Dédiées Date et Heure d'Envoi** : Deux nouvelles cases spécifiques pour la *Date d'envoi* et l'*Heure d'envoi* (avec fuseau horaire de Dakar et bouton de copie rapide en 1 clic).
+  - Affiche l'intégralité des informations saisies par le prospect : Nom complet, Entreprise / Marque, Numéro WhatsApp, Adresse e-mail, Service recherché, Budget mensuel estimé, Date d'envoi, Heure d'envoi, et Description détaillée intégrale du besoin.
+  - Boutons de copie rapide en 1 clic pour chaque champ.
+  - Sélecteur de statut interactif synchronisé en direct avec Supabase (`leads_quotes`).
+  - Bouton CTA officiel orange **Contacter sur WhatsApp** (avec message pré-rempli sur mesure) et bouton **Envoyer un e-mail**.
+  - Fermeture ergonomique via la touche Échap (`Escape`), la croix de fermeture ou le clic à l'extérieur.
+- **Fiche de Détail Interactive (`LeadDetailCard.tsx`)** :
+  - Identifiant unique `#REQ-XXXXXX` et **capsule horodatée haute** (*« Envoyé le {date} à {heure} »* avec icône `Clock` orange).
+  - Grille détaillée équilibrée en 2 colonnes avec lignes dédiées **Date d'envoi** (colonne gauche) et **Heure d'envoi** (colonne droite).
+  - Sélecteur de statut épuré (3 options : *À traiter*, *En cours*, *Devis envoyé*) modifiant la donnée en temps réel dans Supabase (`leads_quotes`).
+  - Bloc descriptif du besoin prospect avec copie rapide en un clic.
+  - Bouton d'action directe **Contacter sur WhatsApp** ouvrant la messagerie officielle pré-remplie avec le numéro au format international.
+  - Bouton **Envoyer un e-mail** ouvrant le client mail avec objet et corps de message pré-rédigés.
+- **Alias `/dashboard`** : Redirection automatique vers `/admin`.
 
 ---
 
@@ -151,9 +201,27 @@ sama pub site/
 │   ├── app/
 │   │   ├── globals.css                       # Variables CSS, import Tailwind, reset scrollbar
 │   │   ├── layout.tsx                        # Root layout, métadonnées SEO, OpenGraph, viewport
-│   │   └── page.tsx                          # Page d'accueil principale assemblant tous les blocs
+│   │   ├── global-error.tsx                  # Gestionnaire d'erreur racine conforme Next.js 14
+│   │   ├── error.tsx                         # Gestionnaire d'erreur de page client
+│   │   ├── not-found.tsx                     # Page 404 personnalisée SAMA PUB
+│   │   ├── page.tsx                          # Page d'accueil principale assemblant tous les blocs
+│   │   ├── devis/
+│   │   │   └── page.tsx                      # Page dédiée haute conversion de demande de devis
+│   │   ├── admin/
+│   │   │   ├── layout.tsx                    # Layout privé pour l'espace d'administration
+│   │   │   └── page.tsx                      # Tableau de bord complet : stats, devis, filtres, export
+│   │   └── dashboard/
+│   │       └── page.tsx                      # Redirection automatique vers /admin
 │   │
 │   ├── components/
+│   │   ├── admin/
+│   │   │   ├── AdminHeader.tsx               # En-tête avec profil admin, cloche alertes et menu mobile
+│   │   │   ├── AdminSidebar.tsx              # Barre latérale avec logo SAMA PUB et onglets de gestion
+│   │   │   ├── AdminStatsGrid.tsx            # Grille des 4 cartes KPI (Reçues, En attente, En cours, Devis envoyés)
+│   │   │   ├── LeadsTable.tsx                # Tableau avec avatars, filtres de statut, recherche et export CSV
+│   │   │   ├── LeadInspectionModal.tsx       # Modale d'inspection détaillée du client au clic sur l'icône œil
+│   │   │   ├── LeadDetailCard.tsx            # Fiche prospect avec boutons directs WhatsApp et E-mail
+│   │   │   └── AdminLockScreen.tsx           # Écran de verrouillage sécurisé par code d'accès
 │   │   ├── Header.tsx                        # Navigation fixe, barre sticky, menu drawer mobile
 │   │   ├── Logo.tsx                          # Composant Logo vectoriel et image avec gestion des thèmes
 │   │   ├── Hero.tsx                          # Hero section complète avec photo locale et badges
@@ -183,12 +251,15 @@ sama pub site/
 │       ├── database.types.ts                 # Types TypeScript générés automatiquement depuis Supabase
 │       └── index.ts                          # Déclarations TypeScript (ServiceItem, MetricItem, etc.)
 │
+├── scripts/
+│   └── sync_supabase.js                      # Script Node.js de synchronisation automatisée
 ├── .env.local                                # Variables d'environnement Supabase (URL + clé publique)
 ├── .gitignore                                # Protection stricte contre l'envoi de secrets sur GitHub
 ├── GEMINI.md                                 # CE FICHIER : Guide de référence du projet
 ├── next.config.js                            # Configuration Next.js (optimisation images, compression)
 ├── package.json                              # Scripts npm et dépendances du projet
 ├── postcss.config.js                         # Configuration PostCSS pour Tailwind CSS
+├── supabase_sync.sql                         # Script SQL complet de synchronisation Supabase (PostgreSQL 17)
 ├── tailwind.config.ts                        # Configuration Tailwind, palettes sama-*, animations
 └── tsconfig.json                             # Configuration TypeScript stricte
 ```

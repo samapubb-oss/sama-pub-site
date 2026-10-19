@@ -4,7 +4,7 @@ import React, { useEffect } from "react";
 import Link from "next/link";
 import { AlertCircle, RefreshCw, Home } from "lucide-react";
 
-export default function GlobalError({
+export default function Error({
   error,
   reset,
 }: {

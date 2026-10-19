@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import {
   Megaphone,
   Target,
@@ -171,46 +172,50 @@ export const ServicesGrid: React.FC = () => {
               </div>
 
               {/* Action Link in Bottom */}
-              <a
-                href="#contact"
+              <Link
+                href="/devis"
                 className="flex items-center justify-between pt-4 border-t border-slate-100 text-xs font-bold text-slate-600 group-hover:text-sama-orange transition-colors"
               >
                 <span>Demander un devis dédié</span>
                 <div className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center text-slate-400 group-hover:border-sama-orange group-hover:bg-sama-orange group-hover:text-white transition-all duration-200">
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                 </div>
-              </a>
+              </Link>
             </div>
           ))}
         </div>
 
-        {/* Bottom Banner: Reassurance & Direct Action Callout */}
-        <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-slate-900 via-[#0B1E38] to-slate-900 text-white border border-white/10 shadow-xl flex flex-col lg:flex-row items-center justify-between gap-6">
-          <div className="space-y-2 text-center lg:text-left">
-            <div className="flex flex-col sm:flex-row items-center gap-2.5 sm:gap-4 text-xs sm:text-sm font-medium text-slate-200">
-              <div className="flex items-center gap-2">
-                <div className="w-5 h-5 rounded-full bg-sama-orange/20 text-sama-orange flex items-center justify-center shrink-0">
-                  <Sparkles className="w-3 h-3" />
-                </div>
-                <span>Campagnes optimisées en temps réel pour un coût par lead minimal</span>
+        {/* Bottom Banner: Reassurance & Direct Action Callout - 100% Mobile Optimized */}
+        <div className="p-5 sm:p-8 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-[#07162C] via-[#0E284F] to-[#07162C] text-white border border-white/10 sm:border-orange-500/20 shadow-xl flex flex-col lg:flex-row items-center justify-between gap-5 sm:gap-6">
+          <div className="space-y-3 sm:space-y-2.5 text-center lg:text-left w-full lg:w-auto">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-[11px] sm:text-xs font-semibold text-sama-orange mx-auto lg:mx-0">
+              <Sparkles className="w-3.5 h-3.5 text-sama-orange shrink-0" />
+              <span>Accompagnement d&apos;élite à Dakar</span>
+            </div>
+            
+            <div className="w-full max-w-sm sm:max-w-none mx-auto lg:mx-0 flex flex-col sm:flex-row sm:items-center justify-center lg:justify-start gap-2 sm:gap-4 text-xs sm:text-sm font-medium text-slate-200">
+              <div className="flex items-start sm:items-center gap-2.5 sm:gap-2 text-left">
+                <span className="w-1.5 h-1.5 rounded-full bg-sama-orange shrink-0 mt-1 sm:mt-0 shadow-[0_0_8px_rgba(255,107,0,0.8)]" />
+                <span className="leading-snug sm:leading-normal">Campagnes optimisées en temps réel (ROAS mesurable)</span>
               </div>
               <span className="hidden sm:inline text-slate-500">•</span>
-              <div className="flex items-center gap-2">
-                <div className="w-5 h-5 rounded-full bg-sama-orange/20 text-sama-orange flex items-center justify-center shrink-0">
-                  <Sparkles className="w-3 h-3" />
-                </div>
-                <span>Créations conformes aux standards de l'écosystème Meta & TikTok</span>
+              <div className="flex items-start sm:items-center gap-2.5 sm:gap-2 text-left">
+                <span className="w-1.5 h-1.5 rounded-full bg-sama-orange shrink-0 mt-1 sm:mt-0 shadow-[0_0_8px_rgba(255,107,0,0.8)]" />
+                <span className="leading-snug sm:leading-normal">Créations conformes aux algorithmes Meta &amp; TikTok</span>
               </div>
             </div>
           </div>
 
-          <a
-            href="#contact"
-            className="shrink-0 inline-flex items-center gap-2.5 px-7 py-3.5 rounded-full bg-sama-orange hover:bg-sama-orange-hover text-white font-bold text-sm shadow-[0_8px_20px_rgba(255,107,0,0.35)] transition-all transform hover:-translate-y-0.5 group"
+          <Link
+            href="/devis"
+            className="w-full sm:w-auto shrink-0 inline-flex items-center justify-center gap-2 px-5 sm:px-8 py-3.5 sm:py-4 rounded-full bg-sama-orange hover:bg-sama-orange-hover active:scale-[0.98] text-white font-bold text-xs sm:text-sm shadow-[0_8px_20px_rgba(255,107,0,0.35)] hover:shadow-glow-orange transition-all transform hover:-translate-y-0.5 group text-center cursor-pointer"
           >
-            <span>Discuter de vos objectifs avec un expert</span>
-            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-          </a>
+            <span className="sm:hidden leading-none">Discuter avec un expert</span>
+            <span className="hidden sm:inline leading-tight whitespace-nowrap">
+              Discuter de vos objectifs avec un expert
+            </span>
+            <ArrowRight className="w-4 h-4 shrink-0 transition-transform group-hover:translate-x-1" />
+          </Link>
         </div>
 
       </div>

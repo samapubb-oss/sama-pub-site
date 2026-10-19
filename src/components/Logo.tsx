@@ -26,7 +26,7 @@ export const Logo: React.FC<LogoProps> = ({
     <div className={`flex items-center gap-2.5 sm:gap-3 select-none ${className}`}>
       {/* Official SAMA PUB Round Emblem Logo */}
       <div
-        className={`relative ${current.class} shrink-0 rounded-full overflow-hidden shadow-sm bg-white border border-slate-100 flex items-center justify-center p-0.5`}
+        className={`relative ${current.class} shrink-0 rounded-full overflow-hidden shadow-xs bg-white border border-slate-100 flex items-center justify-center`}
       >
         <Image
           src="/images/logo-sp.png"
@@ -34,7 +34,7 @@ export const Logo: React.FC<LogoProps> = ({
           width={current.width}
           height={current.height}
           priority
-          className="object-contain w-full h-full rounded-full"
+          className="object-cover w-full h-full rounded-full"
         />
       </div>
 

@@ -43,6 +43,8 @@ export const FAQSection: React.FC = () => {
 
   return (
     <section id="faq" className="py-20 md:py-28 bg-white relative">
+      {/* Anchor for blog navigation */}
+      <div id="blog" className="absolute -top-20 pointer-events-none" />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}

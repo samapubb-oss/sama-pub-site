@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
-import { methodologySteps } from "@/data/mock/about";
+import React, { useState, useEffect } from "react";
+import { methodologySteps as defaultSteps } from "@/data/mock/about";
 import {
   CheckCircle2,
   Search,
@@ -10,8 +10,43 @@ import {
   TrendingUp,
   Sparkles,
 } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 export const MethodologySection: React.FC = () => {
+  const [steps, setSteps] = useState(defaultSteps);
+
+  useEffect(() => {
+    async function fetchSteps() {
+      try {
+        const { data, error } = await supabase
+          .from("methodology_steps")
+          .select("*")
+          .eq("is_active", true)
+          .order("display_order", { ascending: true });
+
+        if (!error && data && data.length > 0) {
+          setSteps(
+            data.map((item, index) => {
+              const fallback =
+                defaultSteps.find((s) => s.step === item.step_number) ||
+                defaultSteps[index % defaultSteps.length];
+              return {
+                ...fallback,
+                step: item.step_number,
+                title: item.title,
+                description: item.description,
+                deliverables: item.deliverables || fallback.deliverables,
+              };
+            })
+          );
+        }
+      } catch (err) {
+        console.warn("Utilisation de la méthodologie locale suite à:", err);
+      }
+    }
+    fetchSteps();
+  }, []);
+
   const stepIcons = [
     {
       icon: <Search className="w-5 h-5 text-white drop-shadow" />,
@@ -57,7 +92,7 @@ export const MethodologySection: React.FC = () => {
 
         {/* 4 Steps Timeline / Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 relative">
-          {methodologySteps.map((step, idx) => {
+          {steps.map((step, idx) => {
             const stepConfig = stepIcons[idx % stepIcons.length];
 
             return (

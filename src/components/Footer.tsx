@@ -19,14 +19,14 @@ export const Footer: React.FC = () => {
   };
 
   return (
-    <footer className="bg-sama-navy text-white pt-16 pb-24 sm:pb-12 border-t border-white/10 relative overflow-hidden">
+    <footer className="bg-sama-navy text-white pt-12 sm:pt-16 pb-36 sm:pb-12 border-t border-white/10 relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
         {/* Main Footer Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 pb-16 border-b border-white/10">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 sm:gap-10 lg:gap-12 pb-12 sm:pb-16 border-b border-white/10">
           
-          {/* Column 1: Brand & Presentation (5 cols) */}
-          <div className="lg:col-span-5 space-y-6">
+          {/* Column 1: Brand & Presentation (5 cols on lg) */}
+          <div className="md:col-span-2 lg:col-span-5 space-y-4 sm:space-y-6">
             <Link href="/" className="inline-block" aria-label="Accueil SAMA PUB">
               <Logo variant="dark" size="lg" />
             </Link>
@@ -36,7 +36,7 @@ export const Footer: React.FC = () => {
             </p>
 
             {/* Social links with REAL official SVG icons */}
-            <div className="flex items-center gap-3 pt-2">
+            <div className="flex items-center gap-3 pt-1 sm:pt-2">
               <a
                 href={siteConfig.socials.facebook}
                 target="_blank"
@@ -78,53 +78,59 @@ export const Footer: React.FC = () => {
             </div>
           </div>
 
-          {/* Column 2: Navigation Links (2 cols) */}
-          <div className="lg:col-span-2 space-y-4">
-            <h4 className="text-sm font-bold uppercase tracking-wider text-sama-orange">
-              Navigation
-            </h4>
-            <ul className="space-y-2.5 text-sm">
-              {siteConfig.navigation.map((item) => (
-                <li key={item.href}>
-                  <a
-                    href={item.href}
-                    className="text-slate-300 hover:text-sama-orange transition-colors"
-                  >
-                    {item.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
+          {/* Navigation & Expertises: 2 columns on mobile for tight, elegant layout */}
+          <div className="grid grid-cols-2 gap-6 sm:gap-8 md:col-span-1 lg:col-span-4">
+            {/* Column 2: Navigation Links */}
+            <div className="space-y-3 sm:space-y-4">
+              <h4 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-sama-orange">
+                Navigation
+              </h4>
+              <ul className="space-y-2 sm:space-y-2.5 text-xs sm:text-sm">
+                {siteConfig.navigation.map((item) => (
+                  <li key={item.href}>
+                    <a
+                      href={item.href}
+                      className="text-slate-300 hover:text-sama-orange transition-colors inline-block py-0.5"
+                    >
+                      {item.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Column 3: Services Links */}
+            <div className="space-y-3 sm:space-y-4">
+              <h4 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-sama-orange">
+                Expertises
+              </h4>
+              <ul className="space-y-2 sm:space-y-2.5 text-xs sm:text-sm">
+                {mockServices.map((service) => (
+                  <li key={service.id}>
+                    <a
+                      href="#services"
+                      className="text-slate-300 hover:text-sama-orange transition-colors inline-block py-0.5"
+                    >
+                      {service.title}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
 
-          {/* Column 3: Services Links (2 cols) */}
-          <div className="lg:col-span-2 space-y-4">
-            <h4 className="text-sm font-bold uppercase tracking-wider text-sama-orange">
-              Expertises
-            </h4>
-            <ul className="space-y-2.5 text-sm">
-              {mockServices.map((service) => (
-                <li key={service.id}>
-                  <a
-                    href="#services"
-                    className="text-slate-300 hover:text-sama-orange transition-colors"
-                  >
-                    {service.title}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Column 4: Contact & Office (3 cols) */}
-          <div className="lg:col-span-3 space-y-4">
-            <h4 className="text-sm font-bold uppercase tracking-wider text-sama-orange">
+          {/* Column 4: Contact & Office (3 cols on lg) */}
+          <div className="md:col-span-1 lg:col-span-3 space-y-3 sm:space-y-4">
+            <h4 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-sama-orange">
               Siège & Contact
             </h4>
-            <div className="space-y-3 text-sm text-slate-300">
+            <div className="space-y-2.5 sm:space-y-3 text-xs sm:text-sm text-slate-300">
               <div className="flex items-start gap-2.5">
-                <MapPin className="w-4 h-4 text-sama-orange shrink-0 mt-1" />
-                <span>Dakar, Sénégal 🇸🇳</span>
+                <MapPin className="w-4 h-4 text-sama-orange shrink-0 mt-0.5" />
+                <span className="flex items-center gap-1.5">
+                  Dakar, Sénégal
+                  <span className="text-sm select-none" aria-hidden="true">🇸🇳</span>
+                </span>
               </div>
 
               <div className="flex items-center gap-2.5">
@@ -142,41 +148,61 @@ export const Footer: React.FC = () => {
               </div>
             </div>
 
-            <div className="pt-2">
-              <a
-                href="#contact"
-                className="inline-flex items-center gap-2 text-xs font-bold text-sama-orange hover:text-white transition-colors"
+            <div className="pt-1 sm:pt-2">
+              <Link
+                href="/devis"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-sama-orange hover:text-white transition-colors group py-1"
               >
-                <span>Demander un devis en ligne →</span>
-              </a>
+                <span>Demander un devis en ligne</span>
+                <span className="transition-transform group-hover:translate-x-1">→</span>
+              </Link>
             </div>
           </div>
 
         </div>
 
-        {/* Bottom Bar & Copyright */}
-        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
-          <div>
-            © {new Date().getFullYear()} SAMA PUB. Tous droits réservés. Agence de publicité & marketing digital.
+        {/* Bottom Bar & Copyright - Mobile Optimized */}
+        <div className="pt-6 sm:pt-8 flex flex-col sm:flex-row items-center justify-between gap-5 sm:gap-4 text-xs text-slate-400">
+          
+          {/* Copyright description */}
+          <div className="text-center sm:text-left leading-relaxed">
+            <p className="text-slate-400 text-[11px] sm:text-xs">
+              © {new Date().getFullYear()} <span className="font-semibold text-slate-200">SAMA PUB</span>. Tous droits réservés.
+              <span className="block sm:inline sm:ml-1 text-slate-400">
+                Agence de publicité & marketing digital.
+              </span>
+            </p>
           </div>
 
-          <div className="flex items-center gap-6">
-            <a href="#contact" className="hover:text-slate-200 transition-colors">
-              Mentions Légales
-            </a>
-            <a href="#contact" className="hover:text-slate-200 transition-colors">
-              Confidentialité
-            </a>
+          {/* Legal Links & Scroll Top */}
+          <div className="flex flex-wrap items-center justify-center sm:justify-end gap-x-5 gap-y-2.5 w-full sm:w-auto">
+            <div className="inline-flex items-center gap-3 text-slate-400">
+              <a 
+                href="#contact" 
+                className="whitespace-nowrap hover:text-white transition-colors py-1 hover:underline underline-offset-4"
+              >
+                Mentions Légales
+              </a>
+              <span className="text-slate-600 select-none">·</span>
+              <a 
+                href="#contact" 
+                className="whitespace-nowrap hover:text-white transition-colors py-1 hover:underline underline-offset-4"
+              >
+                Confidentialité
+              </a>
+            </div>
+
             <button
               type="button"
               onClick={scrollToTop}
-              className="flex items-center gap-1.5 p-2 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 active:bg-white/15 border border-white/10 text-slate-300 hover:text-white transition-all text-xs cursor-pointer shadow-sm active:scale-95 ml-1"
               aria-label="Retourner en haut de la page"
             >
-              <span>Haut de page</span>
-              <ArrowUp className="w-3.5 h-3.5" />
+              <span className="whitespace-nowrap font-medium">Haut de page</span>
+              <ArrowUp className="w-3.5 h-3.5 text-sama-orange" />
             </button>
           </div>
+
         </div>
 
       </div>

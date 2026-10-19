@@ -4,10 +4,17 @@ import React, { useState, useEffect } from "react";
 import { Target, Users, Eye, TrendingUp, Sparkles, ArrowUpRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
+const verifiedStatsMap: Record<string, string> = {
+  campagnes: "+50",
+  clients: "+40",
+  impressions: "+1M",
+  roi: "+3x",
+};
+
 const defaultStats = [
     {
       id: "campagnes",
-      number: "+150",
+      number: "+50",
       label: "Campagnes menées",
       sublabel: "Meta, Google & TikTok Ads",
       badge: "Vérifiées",
@@ -17,7 +24,7 @@ const defaultStats = [
     },
     {
       id: "clients",
-      number: "+100",
+      number: "+40",
       label: "Clients satisfaits",
       sublabel: "PME, commerces & marques",
       badge: "Fidélité 94%",
@@ -27,7 +34,7 @@ const defaultStats = [
     },
     {
       id: "impressions",
-      number: "+5M",
+      number: "+1M",
       label: "Personnes touchées",
       sublabel: "Au Sénégal & en zone UEMOA",
       badge: "Portée active",
@@ -68,7 +75,9 @@ export const StatsCounter: React.FC = () => {
               return {
                 ...fallback,
                 id: item.id,
-                number: `${item.prefix || ""}${item.value}${item.suffix || ""}`,
+                number:
+                  verifiedStatsMap[item.id] ||
+                  `${item.prefix || ""}${item.value}${item.suffix || ""}`,
                 label: item.label,
                 sublabel: item.sublabel || fallback.sublabel,
               };

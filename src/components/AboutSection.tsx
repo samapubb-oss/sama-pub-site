@@ -9,38 +9,72 @@ import {
   BarChart2,
   CheckCircle2,
 } from "lucide-react";
+import { supabase } from "@/lib/supabase";
+
+const defaultPillars = [
+  {
+    id: "creativite",
+    title: "Créativité sans limite",
+    subtitle: "Concepts visuels & accroches percutantes",
+    icon: <Lightbulb className="w-4 h-4 text-white drop-shadow" />,
+    gradient: "from-amber-400 to-orange-500 shadow-[0_4px_16px_rgba(245,158,11,0.35)] border-amber-300/40",
+  },
+  {
+    id: "expertise",
+    title: "Expertise digitale",
+    subtitle: "Maîtrise pointue des algorithmes publicitaires",
+    icon: <ShieldCheck className="w-4 h-4 text-white drop-shadow" />,
+    gradient: "from-blue-600 to-indigo-600 shadow-[0_4px_16px_rgba(37,99,235,0.35)] border-blue-300/40",
+  },
+  {
+    id: "accompagnement",
+    title: "Accompagnement personnalisé",
+    subtitle: "Un interlocuteur dédié réactif au quotidien",
+    icon: <HeartHandshake className="w-4 h-4 text-white drop-shadow" />,
+    gradient: "from-orange-500 to-rose-500 shadow-[0_4px_16px_rgba(255,107,0,0.35)] border-orange-300/40",
+  },
+  {
+    id: "resultats",
+    title: "Résultats mesurables",
+    subtitle: "Rapports clairs & calcul précis du ROI",
+    icon: <BarChart2 className="w-4 h-4 text-white drop-shadow" />,
+    gradient: "from-emerald-500 to-teal-600 shadow-[0_4px_16px_rgba(16,185,129,0.35)] border-emerald-300/40",
+  },
+];
 
 export const AboutSection: React.FC = () => {
-  const pillars = [
-    {
-      id: "creativite",
-      title: "Créativité sans limite",
-      subtitle: "Concepts visuels & accroches percutantes",
-      icon: <Lightbulb className="w-4 h-4 text-white drop-shadow" />,
-      gradient: "from-amber-400 to-orange-500 shadow-[0_4px_16px_rgba(245,158,11,0.35)] border-amber-300/40",
-    },
-    {
-      id: "expertise",
-      title: "Expertise digitale",
-      subtitle: "Maîtrise pointue des algorithmes publicitaires",
-      icon: <ShieldCheck className="w-4 h-4 text-white drop-shadow" />,
-      gradient: "from-blue-600 to-indigo-600 shadow-[0_4px_16px_rgba(37,99,235,0.35)] border-blue-300/40",
-    },
-    {
-      id: "accompagnement",
-      title: "Accompagnement personnalisé",
-      subtitle: "Un interlocuteur dédié réactif au quotidien",
-      icon: <HeartHandshake className="w-4 h-4 text-white drop-shadow" />,
-      gradient: "from-orange-500 to-rose-500 shadow-[0_4px_16px_rgba(255,107,0,0.35)] border-orange-300/40",
-    },
-    {
-      id: "resultats",
-      title: "Résultats mesurables",
-      subtitle: "Rapports clairs & calcul précis du ROI",
-      icon: <BarChart2 className="w-4 h-4 text-white drop-shadow" />,
-      gradient: "from-emerald-500 to-teal-600 shadow-[0_4px_16px_rgba(16,185,129,0.35)] border-emerald-300/40",
-    },
-  ];
+  const [pillars, setPillars] = React.useState(defaultPillars);
+
+  React.useEffect(() => {
+    async function fetchPillars() {
+      try {
+        const { data, error } = await supabase
+          .from("about_pillars")
+          .select("*")
+          .eq("is_active", true)
+          .order("display_order", { ascending: true });
+
+        if (!error && data && data.length > 0) {
+          setPillars(
+            data.map((item, index) => {
+              const fallback =
+                defaultPillars.find((p) => p.id === item.id) ||
+                defaultPillars[index % defaultPillars.length];
+              return {
+                ...fallback,
+                id: item.id,
+                title: item.title,
+                subtitle: item.subtitle,
+              };
+            })
+          );
+        }
+      } catch (err) {
+        console.warn("Utilisation des piliers locaux suite à:", err);
+      }
+    }
+    fetchPillars();
+  }, []);
 
   return (
     <section id="a-propos" className="py-20 md:py-28 bg-white relative overflow-hidden">
@@ -82,13 +116,13 @@ export const AboutSection: React.FC = () => {
             <div className="relative w-full max-w-[340px] p-6 rounded-3xl bg-gradient-to-b from-slate-50 to-slate-100/80 border border-slate-200/90 shadow-xl text-center transform hover:scale-[1.02] transition-transform duration-300">
               
               {/* SAMA PUB Official Logo */}
-              <div className="relative w-16 h-16 mx-auto mb-3 rounded-full bg-white border border-slate-200 shadow-md flex items-center justify-center p-1 overflow-hidden">
+              <div className="relative w-16 h-16 mx-auto mb-3 rounded-full bg-white border border-slate-200 shadow-md flex items-center justify-center overflow-hidden">
                 <Image
                   src="/images/logo-sp.png"
                   alt="SAMA PUB Logo Officiel"
                   width={64}
                   height={64}
-                  className="object-contain w-full h-full rounded-full"
+                  className="object-cover w-full h-full rounded-full"
                 />
               </div>
 

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import Image from "next/image";
 import { mockPortfolio } from "@/data/mock/faq";
 import { PortfolioItem } from "@/types";
@@ -41,6 +42,8 @@ export const PortfolioPreview: React.FC = () => {
   }, []);
   return (
     <section id="realisations" className="py-12 sm:py-20 md:py-28 bg-[#07162C] text-white relative overflow-hidden border-t border-white/10">
+      {/* Anchor for temoignages navigation */}
+      <div id="temoignages" className="absolute -top-20 pointer-events-none" />
       {/* Background Ambient Glow */}
       <div className="absolute top-1/3 left-0 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-sama-orange/10 rounded-full blur-3xl pointer-events-none" />
@@ -123,13 +126,13 @@ export const PortfolioPreview: React.FC = () => {
                   ))}
                 </div>
 
-                <a
-                  href="#contact"
+                <Link
+                  href="/devis"
                   className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-300 group-hover:text-sama-orange transition-colors"
                 >
                   <span>Étudier un projet similaire</span>
                   <ArrowUpRight className="w-3.5 h-3.5 text-sama-orange group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                </a>
+                </Link>
               </div>
             </div>
           ))}
@@ -151,12 +154,12 @@ export const PortfolioPreview: React.FC = () => {
             </div>
           </div>
 
-          <a
-            href="#contact"
-            className="w-full sm:w-auto text-center shrink-0 px-6 py-3 text-xs sm:text-sm font-bold text-white bg-sama-orange hover:bg-sama-orange-hover rounded-full shadow-md transition-all hover:scale-105"
+          <Link
+            href="/devis"
+            className="w-full sm:w-auto text-center shrink-0 px-6 py-3 text-xs sm:text-sm font-bold text-white bg-sama-orange hover:bg-sama-orange-hover rounded-full shadow-md transition-all hover:scale-105 active:scale-95"
           >
             Demander un aperçu confidentiel
-          </a>
+          </Link>
         </div>
 
       </div>

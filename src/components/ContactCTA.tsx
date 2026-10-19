@@ -16,7 +16,11 @@ import {
 import { WhatsAppIcon } from "./WhatsAppIcon";
 import { supabase } from "@/lib/supabase";
 
-export const ContactCTA: React.FC = () => {
+interface ContactCTAProps {
+  isStandalonePage?: boolean;
+}
+
+export const ContactCTA: React.FC<ContactCTAProps> = ({ isStandalonePage = false }) => {
   const [formData, setFormData] = useState({
     fullName: "",
     companyName: "",
@@ -87,34 +91,57 @@ export const ContactCTA: React.FC = () => {
   };
 
   return (
-    <section id="contact" className="py-20 md:py-28 bg-slate-50 relative overflow-hidden">
+    <section
+      id="contact"
+      className={`${
+        isStandalonePage
+          ? "pt-20 sm:pt-24 lg:pt-8 pb-16 md:pb-24"
+          : "py-20 md:py-28"
+      } bg-slate-50 relative overflow-hidden`}
+    >
       {/* Decorative background blurs */}
       <div className="absolute top-0 right-0 w-96 h-96 bg-sama-orange/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
-        {/* Section Header */}
-        <div className="text-center max-w-4xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-2 mb-3">
-            <span className="w-6 h-0.5 bg-sama-orange rounded-full" />
-            <span className="text-xs sm:text-sm font-bold uppercase tracking-wider text-sama-orange">
-              Discutons de votre projet
-            </span>
-            <span className="w-6 h-0.5 bg-sama-orange rounded-full" />
+        {/* If standalone page: ultra-compact mobile header so form inputs are IMMEDIATELY visible without scrolling. On desktop, hero already handles title. */}
+        {isStandalonePage ? (
+          <div className="lg:hidden mb-4 text-center sm:text-left">
+            <div className="inline-flex items-center gap-1.5 mb-1">
+              <span className="w-4 h-0.5 bg-sama-orange rounded-full" />
+              <span className="text-[11px] font-bold uppercase tracking-wider text-sama-orange">
+                Devis Gratuit en 1 min
+              </span>
+            </div>
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+              Vos informations pour votre devis{" "}
+              <span className="text-sama-orange">sur-mesure</span>
+            </h1>
           </div>
+        ) : (
+          /* Standard Section Header for Home Page */
+          <div className="text-center max-w-4xl mx-auto mb-16">
+            <div className="inline-flex items-center gap-2 mb-3">
+              <span className="w-6 h-0.5 bg-sama-orange rounded-full" />
+              <span className="text-xs sm:text-sm font-bold uppercase tracking-wider text-sama-orange">
+                Discutons de votre projet
+              </span>
+              <span className="w-6 h-0.5 bg-sama-orange rounded-full" />
+            </div>
 
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight leading-snug sm:leading-normal md:leading-[1.25] mb-4">
-            Demandez votre devis gratuit{" "}
-            <span className="text-sama-orange whitespace-nowrap">ou un premier échange</span>
-          </h2>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight leading-snug sm:leading-normal md:leading-[1.25] mb-4">
+              Demandez votre devis gratuit{" "}
+              <span className="text-sama-orange whitespace-nowrap">ou un premier échange</span>
+            </h2>
 
-          <p className="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
-            Remplissez ce formulaire en 1 minute. Notre équipe analyse votre demande et vous répond sous 24h ouvrées avec une proposition concrète.
-          </p>
-        </div>
+            <p className="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
+              Remplissez ce formulaire en 1 minute. Notre équipe analyse votre demande et vous répond sous 24h ouvrées avec une proposition concrète.
+            </p>
+          </div>
+        )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
           
           {/* Direct Contact & Official Information (Section bleue : 2ème sur mobile, 1ère sur desktop) */}
           <div className="order-2 lg:order-1 lg:col-span-5 flex flex-col justify-between space-y-4 sm:space-y-8">
@@ -267,9 +294,26 @@ export const ContactCTA: React.FC = () => {
                 />
 
                 {formStatus === "error" && (
-                  <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-center gap-2">
-                    <AlertCircle className="w-5 h-5 shrink-0" />
-                    <span>{errorMessage}</span>
+                  <div className="p-4 sm:p-5 rounded-2xl bg-red-50 border border-red-200 text-red-800 text-sm space-y-3 animate-in fade-in">
+                    <div className="flex items-start gap-2.5">
+                      <AlertCircle className="w-5 h-5 shrink-0 text-red-600 mt-0.5" />
+                      <div className="leading-snug">
+                        <p className="font-semibold">{errorMessage}</p>
+                      </div>
+                    </div>
+                    {formData.fullName && (
+                      <a
+                        href={`https://wa.me/221761422858?text=${encodeURIComponent(
+                          `Bonjour SAMA PUB, je souhaite un devis :\n• Nom : ${formData.fullName}\n• Entreprise : ${formData.companyName || "Non spécifié"}\n• Service : ${formData.serviceRequested}\n• Budget : ${formData.budgetRange}\n• WhatsApp : ${formData.whatsappNumber}\n• E-mail : ${formData.email}`
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold text-xs shadow-sm transition-all"
+                      >
+                        <WhatsAppIcon className="w-4 h-4 text-white shrink-0" />
+                        <span>Transmettre ma demande directement sur WhatsApp</span>
+                      </a>
+                    )}
                   </div>
                 )}
 

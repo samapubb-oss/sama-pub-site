@@ -69,22 +69,23 @@
   }
 }
 
-/* Custom Scrollbar */
+/* Modern Subtle Scrollbar */
 ::-webkit-scrollbar {
-  width: 9px;
+  width: 7px;
+  height: 7px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0B192C;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1E3A5F;
-  border-radius: 5px;
+  background: #CBD5E1;
+  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #FF6B00;
+  background: #94A3B8;
 }
 
 /* Reduced motion preference */

@@ -258,6 +258,63 @@ export type Database = {
         }
         Relationships: []
       }
+      about_pillars: {
+        Row: {
+          description: string | null
+          display_order: number | null
+          icon_name: string
+          id: string
+          is_active: boolean | null
+          subtitle: string
+          title: string
+        }
+        Insert: {
+          description?: string | null
+          display_order?: number | null
+          icon_name: string
+          id: string
+          is_active?: boolean | null
+          subtitle: string
+          title: string
+        }
+        Update: {
+          description?: string | null
+          display_order?: number | null
+          icon_name?: string
+          id?: string
+          is_active?: boolean | null
+          subtitle?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      methodology_steps: {
+        Row: {
+          deliverables: string[] | null
+          description: string
+          display_order: number | null
+          is_active: boolean | null
+          step_number: string
+          title: string
+        }
+        Insert: {
+          deliverables?: string[] | null
+          description: string
+          display_order?: number | null
+          is_active?: boolean | null
+          step_number: string
+          title: string
+        }
+        Update: {
+          deliverables?: string[] | null
+          description?: string
+          display_order?: number | null
+          is_active?: boolean | null
+          step_number?: string
+          title?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

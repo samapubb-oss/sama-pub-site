@@ -23,13 +23,13 @@ export const Hero: React.FC = () => {
             
             {/* Pill Capsule Badge */}
             <div className="inline-flex items-center gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-xs sm:text-sm font-medium text-slate-200 mb-3.5 sm:mb-6">
-              <div className="relative w-4 h-4 sm:w-5 sm:h-5 rounded-full overflow-hidden bg-white p-0.5 shrink-0 shadow-sm">
+              <div className="relative w-4 h-4 sm:w-5 sm:h-5 rounded-full overflow-hidden bg-white shrink-0 shadow-xs">
                 <Image
                   src="/images/logo-sp.png"
                   alt="SAMA PUB Logo"
                   width={20}
                   height={20}
-                  className="object-contain w-full h-full rounded-full"
+                  className="object-cover w-full h-full rounded-full"
                 />
               </div>
               <span className="text-[11px] sm:text-sm font-semibold">Agence de publicité & marketing digital</span>
@@ -168,13 +168,13 @@ export const Hero: React.FC = () => {
                 {/* SAMA PUB Ads Engine card */}
                 <div className="mt-2.5 p-3.5 rounded-xl bg-[#091D3A] border border-white/10 flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
-                    <div className="relative w-8 h-8 rounded-full overflow-hidden bg-white p-0.5 shrink-0 shadow-sm border border-slate-200">
+                    <div className="relative w-8 h-8 rounded-full overflow-hidden bg-white shrink-0 shadow-xs border border-slate-200">
                       <Image
                         src="/images/logo-sp.png"
                         alt="SAMA PUB"
                         width={32}
                         height={32}
-                        className="object-contain w-full h-full rounded-full"
+                        className="object-cover w-full h-full rounded-full"
                       />
                     </div>
                     <div>
