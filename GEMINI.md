@@ -108,11 +108,28 @@
 - Encart latéral d'assistance directe avec lien WhatsApp officiel.
 
 ### 9. Formulaire de Devis & Contact Haute Conversion (`ContactCTA.tsx`)
-- **Champs de saisie stricts et obligatoires** :
-  - *Nom complet* (obligatoire).
-  - *Nom de l'entreprise / marque* (facultatif).
-  - *Numéro WhatsApp* (obligatoire, format international ou local ex: `+221 76 142 28 58`).
-  - *Adresse e-mail* (obligatoire, validation de format e-mail).
+- **Toutes les cases obligatoires (Vérification stricte avant envoi)** :
+  - *Nom complet* : Obligatoire (au moins 2 caractères).
+  - *Nom de l'entreprise / marque* : Obligatoire (au moins 2 caractères), marqué d'un astérisque orange `*`.
+  - *Numéro WhatsApp (Format sénégalais strict à 9 chiffres)* :
+    - Badge visuel intégré fixe : Composant vectoriel `SenegalFlag.tsx` (drapeau officiel 🇸🇳 Vert, Jaune, Rouge avec étoile verte à 5 branches) suivi de l'indicatif **+221**.
+    - L'utilisateur n'a pas besoin de taper `+221` : il saisit directement les 9 chiffres de son numéro.
+    - Formatage fluide automatique en direct au format `XX XXX XX XX` (ex: `77 123 45 67`).
+    - Nettoyage automatique des préfixes `00221` ou `221` en cas de copier-coller.
+    - Contrôle strict : Minimum et maximum **exactement 9 chiffres** (rejet si différent de 9 chiffres avec compteur dynamique).
+    - Contrôle de cohérence sénégalaise : Doit débuter par **7** (mobiles : Orange 77/78, Free 76, Expresso 70, Promobile 75) ou **33** (lignes fixes).
+    - Stockage en base Supabase (`leads_quotes`) au standard international complet : `+221 XX XXX XX XX`.
+  - *Adresse e-mail (Contrôle de forme et syntaxe)* :
+    - Obligatoire, validation rigoureuse par expression régulière (RFC).
+    - Rejette les adresses incomplètes ou sans structure conforme (ex : sans `@`, sans nom de domaine ou extension valide).
+    - Message d'erreur ciblé avec exemple explicatif (`contact@entreprise.sn` ou `nom@gmail.com`).
+  - *Service recherché* : Obligatoire, sélection parmi les expertises de l'agence.
+  - *Budget mensuel indicatif* : Obligatoire, sélection parmi les 5 tranches calibrées.
+  - *Description du besoin / projet* : Obligatoire (au moins 10 caractères), marquée d'un astérisque orange `*`.
+- **Indicateurs d'Erreurs Visuels Riches & Responsive** :
+  - En cas de saisie invalide ou d'oubli, la case concernée passe en bordure rouge (`border-rose-400 bg-rose-50/20`).
+  - Message explicatif immédiat sous chaque champ en rouge avec icône d'alerte.
+  - Bannière d'alerte générale en haut du formulaire avec option de secours WhatsApp directe.
 - **Tranches de Budget Calibrées (100 000 FCFA à 1 000 000 FCFA)** :
   - `100 000 - 250 000 FCFA` (Budget minimum)
   - `250 000 - 500 000 FCFA`
@@ -127,7 +144,6 @@
 - **Gestion d'état complète** : États `idle`, `submitting`, `success`, `error` avec persistance Supabase dans `leads_quotes`.
 - **Ergonomie Mobile Réfléchie** : Sur mobile, le formulaire est affiché en priorité, suivi de la carte bleue d'informations coordonnées, garantissant une friction minimale à la saisie.
 - **Bouton WhatsApp Officiel** : Intégration du composant vectoriel `WhatsAppIcon` et lien direct pré-formaté vers le numéro vérifié `+221 76 142 28 58`.
-- **Coordonnées Validées** : Badges temporaires « À confirmer » et « À valider » supprimés suite à la confirmation client.
 - **Page Dédiée `/devis` & Ergonomie Mobile Sans Défilement** :
   - Sur ordinateur (desktop) : Grand en-tête immersif avec fil d'Ariane, H1 sur-mesure et 3 cartes de réassurance (*Réponse sous 24h*, *Stratégie sur-mesure*, *Zéro engagement*).
   - Sur smartphone (mobile) : L'en-tête Hero est masqué (`hidden lg:block`) et remplacé par un titre ultra-compact de 40px, plaçant les champs du formulaire (**Nom complet**, **Numéro WhatsApp**, **E-mail**) directement sous les yeux de l'utilisateur dès le chargement de la page, sans nécessiter le moindre défilement (*zero-scroll*).
