@@ -399,7 +399,7 @@ export default function AdminDashboardPage() {
             </div>
           )}
 
-          {/* TAB 4: SERVICES OFFICIELS SAMA PUB (5 expertises exactes) */}
+          {/* TAB 4: SERVICES OFFICIELS SAMA PUB (4 expertises exactes) */}
           {currentTab === "services" && (
             <div className="space-y-6">
               <div className="bg-white rounded-2xl p-6 border border-slate-100">
@@ -407,11 +407,11 @@ export default function AdminDashboardPage() {
                   Services SAMA PUB & Demandes Associées
                 </h2>
                 <p className="text-xs text-slate-500 mt-1">
-                  Les 5 expertises officielles de l&apos;agence proposées à nos clients
+                  Les 4 expertises officielles de l&apos;agence proposées à nos clients
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
                 {[
                   {
                     title: "Media Buying (Campagnes Pubs)",
@@ -424,11 +424,6 @@ export default function AdminDashboardPage() {
                     desc: "Déploiement synchronisé sur tous les canaux majeurs pour dominer votre marché et capter votre audience là où elle passe son temps.",
                   },
                   {
-                    title: "Création Vidéos & Visuels",
-                    channels: "Reels, TikToks, Shorts, UGC, Bannières",
-                    desc: "Tournage et montage de vidéos courtes percutantes, visuels soignés et accroches engageantes pour maximiser les taux de clics.",
-                  },
-                  {
                     title: "Acquisition de Prospects",
                     channels: "Tunnels de vente, Formulaires instantanés, Funnels WhatsApp",
                     desc: "Génération de flux continu de leads qualifiés pour alimenter directement votre équipe commerciale en opportunités réelles.",
@@ -439,8 +434,15 @@ export default function AdminDashboardPage() {
                     desc: "Pilotage complet et accompagnement stratégique sur-mesure pour transformer vos dépenses en investissements rentables.",
                   },
                 ].map((srv, idx) => {
-                  const reqCount = leads.filter(
-                    (l) => l.service_requested.toLowerCase().includes(srv.title.toLowerCase().slice(0, 12))
+                  const srvKeywords: Record<string, string[]> = {
+                    "Media Buying (Campagnes Pubs)": ["media-buying", "media buying"],
+                    "Publicité Multi-canaux": ["publicite-digitale", "publicité", "publicite"],
+                    "Acquisition de Prospects": ["acquisition-clients", "acquisition"],
+                    "Marketing Digital Global": ["marketing-digital", "marketing digital"],
+                  };
+                  const keywords = srvKeywords[srv.title] || [srv.title.toLowerCase().slice(0, 10)];
+                  const reqCount = leads.filter((l) =>
+                    keywords.some((k) => (l.service_requested || "").toLowerCase().includes(k))
                   ).length;
 
                   return (

@@ -560,10 +560,8 @@ export const ContactCTA: React.FC<ContactCTAProps> = ({ isStandalonePage = false
                       options={[
                         { value: "media-buying", label: "Media Buying (Campagnes Pubs)" },
                         { value: "publicite-digitale", label: "Publicité Multi-canaux" },
-                        { value: "creation-contenus", label: "Création Vidéos & Visuels" },
                         { value: "acquisition-clients", label: "Acquisition de Prospects" },
                         { value: "marketing-digital", label: "Marketing Digital Global" },
-                        { value: "conseil-strategie", label: "Conseil & Stratégie / Audit" },
                       ]}
                     />
                     {fieldErrors.serviceRequested && (
