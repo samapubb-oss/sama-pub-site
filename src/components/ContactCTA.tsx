@@ -16,6 +16,7 @@ import {
 import { WhatsAppIcon } from "./WhatsAppIcon";
 import { SenegalFlag } from "./SenegalFlag";
 import { supabase } from "@/lib/supabase";
+import { trackMetaPixelEvent } from "./MetaPixel";
 
 interface ContactCTAProps {
   isStandalonePage?: boolean;
@@ -188,6 +189,11 @@ export const ContactCTA: React.FC<ContactCTAProps> = ({ isStandalonePage = false
       }
 
       setFormStatus("success");
+      trackMetaPixelEvent("Lead", {
+        content_name: formData.serviceRequested || "Devis Général",
+        value: formData.budgetRange || "Non spécifié",
+        currency: "XOF",
+      });
     } catch (err) {
       console.error("Exception insertion devis:", err);
       setErrorMessage("Erreur de connexion. Veuillez vérifier votre réseau.");
@@ -267,6 +273,7 @@ export const ContactCTA: React.FC<ContactCTAProps> = ({ isStandalonePage = false
                 href={`https://wa.me/${siteConfig.contact.whatsapp}?text=Bonjour%20SAMA%20PUB,%20je%20souhaite%20un%20devis%20pour%20mon%20entreprise`}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => trackMetaPixelEvent("Contact", { method: "WhatsApp", location: "ContactCTA" })}
                 className="w-full flex items-center justify-center gap-2.5 sm:gap-3 py-3.5 sm:py-4 px-3 sm:px-6 rounded-xl sm:rounded-2xl bg-gradient-to-r from-[#25D366] to-[#128C7E] hover:from-[#20bd5a] hover:to-[#0f7a6d] active:scale-[0.99] text-white font-bold text-xs sm:text-sm shadow-[0_8px_20px_rgba(37,211,102,0.35)] transition-all sm:hover:scale-[1.02] mb-5 sm:mb-8 group"
               >
                 <WhatsAppIcon className="w-5 h-5 shrink-0 transition-transform group-hover:scale-110" />

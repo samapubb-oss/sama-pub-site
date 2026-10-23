@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { siteConfig } from "@/data/siteConfig";
 import { X } from "lucide-react";
 import { WhatsAppIcon } from "./WhatsAppIcon";
+import { trackMetaPixelEvent } from "./MetaPixel";
 
 export const WhatsAppFloat: React.FC = () => {
   const [showTooltip, setShowTooltip] = useState(true);
@@ -35,6 +36,7 @@ export const WhatsAppFloat: React.FC = () => {
         href={whatsappUrl}
         target="_blank"
         rel="noopener noreferrer"
+        onClick={() => trackMetaPixelEvent("Contact", { method: "WhatsApp", location: "FloatingButton" })}
         aria-label="Discuter directement avec SAMA PUB sur WhatsApp"
         className="w-14 h-14 rounded-full bg-[#25D366] hover:bg-[#20ba59] text-white shadow-[0_8px_25px_rgba(37,211,102,0.4)] flex items-center justify-center transition-all duration-300 transform hover:scale-110 focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-300 relative group"
       >

@@ -49,7 +49,7 @@
 - Titre H1 percutant avec mise en valeur orange et interligne optimisé pour mobile et desktop.
 - Double Call-To-Action ergonomique :
   - CTA Principal : « Nos services » avec pastille blanche animée sur hover.
-  - CTA Secondaire : « Voir notre présentation » avec icône Play dans un halo orange.
+  - CTA Secondaire : « Création de site internet » avec icône globe dans un halo orange ouvrant directement la page `/creation-site-internet`.
 - Barre de réassurance exécutive sur une seule ligne (desktop) : *Stratégie sur-mesure*, *Équipe d'experts*, *Résultats mesurables*.
 - Visuel immersif ancré dans l'économie locale : Photo haute résolution `/images/miel-du-senegal.png` (récolte de miel au Sénégal).
 - Badges flottants de preuve sociale et métriques :
@@ -198,6 +198,43 @@
   - Bouton d'action directe **Contacter sur WhatsApp** ouvrant la messagerie officielle pré-remplie avec le numéro au format international.
   - Bouton **Envoyer un e-mail** ouvrant le client mail avec objet et corps de message pré-rédigés.
 - **Alias `/dashboard`** : Redirection automatique vers `/admin`.
+
+### 13. Page Dédiée « Création de Site Internet » (`/creation-site-internet`)
+- Accessible directement depuis le bouton secondaire de la Hero section (**« Création de site internet »**).
+- **Hero & En-tête Immersif 100% Responsive** :
+  - Fil d'Ariane (*Retour à l'accueil*).
+  - **Accroche H1 Marketing Haute Conversion** : *« Créez un site web d'élite qui multiplie vos clients & vos ventes »* avec dégradé chaud orange/ambre, animation de clignotement subtile (`animate-pulse-slow`) et halo lumineux immersif.
+  - **Badge Pôle Web Masqué sur Mobile** : Le badge *« Pôle Développement Web & E-commerce · Dakar »* est masqué sur smartphone (`hidden sm:inline-flex`), libérant l'espace vertical pour placer l'accroche directement en haut de l'écran.
+  - **Sous-titre Orienté Bénéfices Business Locaux** : Présentation claire des atouts pour le Sénégal (*Paiements locaux Wave & Orange Money*, *WhatsApp direct*, *SEO Google garanti*) et orientation vers le configurateur en 5 étapes.
+  - **3 Cartes de Réassurance Exécutives Optimisées** :
+    1. *100% Mobile First* (Icône smartphone animée avec halo orange).
+    2. *Wave & Orange Money* (Badges officiels bleu Wave & orange OM avec encaissement en 1 clic).
+    3. *SEO Google Sénégal* (Positionnement stratégique Dakar & zone UEMOA).
+  - **Centrage Absolu sur Desktop** : Disposition en grille 3 colonnes parfaitement centrée au milieu (`max-w-4xl mx-auto`), avec icônes 3D, badges et descriptifs alignés au centre de chaque carte pour une symétrie visuelle irréprochable.
+  - **Défilement Automatique Continu sur Mobile (Marquee)** : Les cartes ne sont plus masquées sur smartphone ; une animation infinie fluide les fait glisser automatiquement en boucle continue avec des masques de fondu latéraux, se mettant en pause au toucher.
+- **Encart d'Assistance & Coordonnées Directes** : Bloc bleu nuit exécutif avec statut en ligne (`🟢 En ligne · Dakar`), bouton WhatsApp pulsé pleine largeur, appels et e-mails directs, et encart de récapitulatif en direct mis à jour en temps réel.
+- **Formulaire Interactif Restructuré en 5 Étapes Intuitives (`WebsiteOrderForm.tsx`)** :
+  - **Couleurs d'icônes à fort contraste (Suppression totale du blanc)** : Toutes les icônes de choix disposent de teintes thématiques vives et contrastées (*Orange SAMA PUB, Bleu tech, Vert émeraude, Violet royal, Ambre, Cyan*) intégrées dans des boîtes 3D teintées sur mesure, garantissant une lisibilité 100% nette sur fond blanc sans aucun mélange.
+  - **Barre de progression dynamique & Stepper 5 Étapes** : 5 boutons cliquables (*1. Type*, *2. Formule*, *3. Options*, *4. Délai*, *5. Contact*) avec calcul de progression à `(currentStep / 5) * 100%`.
+  - **Étape 1 : Type de site (Passage automatique à l'étape 2)** :
+    - Un simple clic sur une carte valide instantanément l'option et bascule vers l'étape 2 en 220ms.
+  - **Étape 2 : Formule & Budget FCFA (Passage automatique à l'étape 3)** :
+    - Cartes tarifaires avec bandeau supérieur intégré, prix au format `whitespace-nowrap font-mono` et basculement automatique à l'étape 3.
+  - **Étape 3 : Fonctionnalités & Options (Multi-choix)** :
+    - Sélection libre des options souhaitées et bouton unique vers l'étape du délai (*« Passer au choix du délai (3/5) → »*).
+  - **Étape 4 : Délai de livraison souhaité (Nouvelle étape dédiée)** :
+    - Étape autonome offrant 3 cartes de délai spacieuses (*⚡ Moins de 2 semaines*, *📅 2 à 4 semaines*, *🌿 Flexible & Conseil*) avec grandes icônes 3D colorées, descriptions complètes sans troncature et basculement automatique vers l'étape 5 au clic.
+  - **Étape 5 : Coordonnées & Finalisation (Étape finale dédiée)** :
+    - Étape finale exclusivement consacrée au formulaire de coordonnées client sans surcharge : Nom complet, Entreprise, Numéro WhatsApp sénégalais strict avec drapeau 🇸🇳 et `+221` fixe, Adresse e-mail valide et Description du projet.
+    - Bouton pleine largeur d'envoi immédiat du devis.
+- **Encart Latéral « Devis en direct » Interactif & Évolutif** :
+  - Pastille dynamique avec halo pulsé clignotant (*« ● Devis en direct »*), compteur d'étape `Étape X / 5` et ligne de délai choisi intégrée.
+  - **Tiroir d'options interactif en 1 clic** : Déploie la liste des options retenues avec pastilles « Inclus » et bouton masquer.
+- **Mode Démonstration & Confirmation** :
+  - Validation sans persistance en base de données (conformément au cahier des charges).
+  - Écran de succès instantané avec identifiant de devis simulé (`#WEB-XXXX`).
+  - Carte récapitulative complète des options et du délai choisis.
+  - Bouton direct d'envoi sur WhatsApp pré-formaté et bouton pour recommencer une simulation.
 
 ---
 
@@ -386,12 +423,21 @@ Lorsque vous intervenez sur ce projet, suivez **scrupuleusement** les règles ci
 - Le logo officiel est stocké dans [`public/images/logo-sp.png`](file:///c:/Users/user/Documents/sama%20pub%20site/public/images/logo-sp.png).
 
 ### 4. Utilisation de l'Icône WhatsApp
-- Ne pas utiliser l'icône générique `MessageSquare` pour WhatsApp.
-- Utilisez toujours le composant dédié [`WhatsAppIcon.tsx`](file:///c:/Users/user/Documents/sama%20pub%20site/src/components/WhatsAppIcon.tsx) avec sa couleur officielle `#25D366` ou `text-white` selon le fond.
+- Ne jamais utiliser d'icônes génériques (`MessageCircle`, `MessageSquare`) pour WhatsApp.
+- Utilisez toujours le composant vectoriel officiel [`WhatsAppIcon.tsx`](file:///c:/Users/360IQ/Documents/sama%20pu%20site/src/components/WhatsAppIcon.tsx).
+- Supporte désormais le mode `fullColor={true}` affichant fidèlement la bulle verte officielle WhatsApp (`#25D366`) et le combiné téléphonique blanc dans le configurateur de création de site internet (Étape 3 : *Bouton WhatsApp direct*), garantissant une reconnaissance immédiate par les visiteurs.
 
 ### 5. Modification du Formulaire & Dropdowns
 - N'utilisez pas de balise HTML standard `<select>` dans le formulaire de devis. Utilisez toujours [`CustomSelect.tsx`](file:///c:/Users/user/Documents/sama%20pub%20site/src/components/CustomSelect.tsx) afin de garantir la beauté du design et d'éviter les bugs d'affichage sur navigateurs mobiles Safari/Chrome.
 
 ### 6. Règles de Communication
 - L'utilisateur s'exprime en français. Toutes les réponses, documentations, textes d'interface et commentaires doivent être rédigés dans un **français impeccable, soigné et orienté business/marketing**.
-### 7. avant de pousser quelque chose sur github demande moi l'autorisation 
+### 7. Intégration Meta Pixel (Facebook & Instagram Ads)
+- **Pixel ID officiel** : `996650999787770`
+- Composant dédié : [`MetaPixel.tsx`](file:///c:/Users/360IQ/Documents/sama%20pu%20site/src/components/MetaPixel.tsx) chargé globalement dans [`layout.tsx`](file:///c:/Users/360IQ/Documents/sama%20pu%20site/src/app/layout.tsx).
+- Événements traqués :
+  - `PageView` : Déclenché sur chaque chargement et changement de route SPA.
+  - `Lead` : Déclenché lors de la validation des devis ([`ContactCTA.tsx`](file:///c:/Users/360IQ/Documents/sama%20pu%20site/src/components/ContactCTA.tsx) et [`WebsiteOrderForm.tsx`](file:///c:/Users/360IQ/Documents/sama%20pu%20site/src/components/website-order/WebsiteOrderForm.tsx)).
+  - `Contact` : Déclenché lors du clic sur les boutons WhatsApp directs ([`WhatsAppFloat.tsx`](file:///c:/Users/360IQ/Documents/sama%20pu%20site/src/components/WhatsAppFloat.tsx), [`ContactCTA.tsx`](file:///c:/Users/360IQ/Documents/sama%20pu%20site/src/components/ContactCTA.tsx), [`WebsiteOrderForm.tsx`](file:///c:/Users/360IQ/Documents/sama%20pu%20site/src/components/website-order/WebsiteOrderForm.tsx)).
+
+### 8. avant de pousser quelque chose sur github demande moi l'autorisation 

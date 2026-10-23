@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { siteConfig } from "@/data/siteConfig";
+import { MetaPixel } from "@/components/MetaPixel";
 
 export const viewport: Viewport = {
   themeColor: "#0B192C",
@@ -67,6 +68,7 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <body className="min-h-screen flex flex-col font-sans bg-white text-slate-800 antialiased selection:bg-sama-orange selection:text-white">
+        <MetaPixel />
         {children}
       </body>
     </html>

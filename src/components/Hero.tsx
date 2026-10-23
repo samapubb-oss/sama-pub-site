@@ -2,7 +2,8 @@
 
 import React from "react";
 import Image from "next/image";
-import { ArrowRight, Play, Target, Users, TrendingUp } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, Globe, Target, Users, TrendingUp } from "lucide-react";
 
 export const Hero: React.FC = () => {
   return (
@@ -58,15 +59,15 @@ export const Hero: React.FC = () => {
                 </div>
               </a>
 
-              <a
-                href="#a-propos"
+              <Link
+                href="/creation-site-internet"
                 className="group inline-flex items-center justify-center gap-2.5 px-6 py-3 sm:px-6 sm:py-3.5 text-sm sm:text-base font-semibold text-white bg-[#0A1F3C]/90 hover:bg-[#0E284F] rounded-full border border-white/20 backdrop-blur-sm transition-all duration-200 hover:border-white/40"
               >
                 <div className="relative w-6 h-6 rounded-full bg-sama-orange/20 border border-sama-orange/40 flex items-center justify-center text-sama-orange group-hover:scale-110 transition-transform shrink-0">
-                  <Play className="w-2.5 h-2.5 fill-sama-orange ml-0.5" />
+                  <Globe className="w-3.5 h-3.5 text-sama-orange" />
                 </div>
-                <span>Voir notre présentation</span>
-              </a>
+                <span>Création de site internet</span>
+              </Link>
             </div>
 
             {/* Desktop Single-Row Executive Trust Bar (visible only on desktop, fits flawlessly on one line) */}
