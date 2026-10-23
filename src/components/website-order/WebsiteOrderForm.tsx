@@ -38,6 +38,7 @@ import { siteConfig } from "@/data/siteConfig";
 import { SenegalFlag } from "@/components/SenegalFlag";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import { trackMetaPixelEvent } from "@/components/MetaPixel";
+import { supabase } from "@/lib/supabase";
 import {
   websiteFormulas,
   websiteTypes,
@@ -244,13 +245,12 @@ export const WebsiteOrderForm: React.FC = () => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateStep5()) {
       return;
     }
 
-    // En mode démonstration : génération d'un devis simulé sans insertion en base de données
     const refNum = `WEB-${Math.floor(1000 + Math.random() * 9000)}`;
     setGeneratedQuoteRef(refNum);
     setIsSubmitted(true);
@@ -260,6 +260,32 @@ export const WebsiteOrderForm: React.FC = () => {
       value: selectedFormula.priceFCFA,
       currency: "XOF",
     });
+
+    // Enregistrement dans Supabase pour notifier immédiatement le dashboard & smartphone du dirigeant
+    try {
+      const typeLabel = selectedType === "autre" ? otherTypeDetail : selectedTypeObj?.title || selectedType;
+      const featuresLabel = selectedFeatures
+        .map((f) => websiteFeatures.find((feat) => feat.id === f)?.label)
+        .filter(Boolean)
+        .join(", ");
+      const fullMessage = `${clientInfo.projectDescription || ""}\n\n[Détails devis : Réf ${refNum} | Type: ${typeLabel} | Formule: ${selectedFormula.name} | Options: ${featuresLabel} | Délai: ${selectedDeadlineObj?.label || "Standard"}]`;
+
+      await supabase.from("leads_quotes").insert({
+        full_name: clientInfo.fullName,
+        company_name: clientInfo.companyName,
+        whatsapp_number: `+221 ${clientInfo.whatsappNumber}`,
+        email: clientInfo.email,
+        service_requested: `Création de site internet (${selectedFormula.name})`,
+        budget_range: selectedFormula.formattedPrice,
+        message: fullMessage,
+        contact_channel: "website_order",
+        contact_value: `+221 ${clientInfo.whatsappNumber}`,
+        status: "new",
+      });
+    } catch (dbErr) {
+      console.warn("Notice insertion leads_quotes:", dbErr);
+    }
+
     scrollToFormTop();
   };
 

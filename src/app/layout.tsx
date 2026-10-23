@@ -54,6 +54,7 @@ export const metadata: Metadata = {
     icon: "/images/logo-sp.png",
     apple: "/images/logo-sp.png",
   },
+  manifest: "/manifest.json",
   robots: {
     index: true,
     follow: true,

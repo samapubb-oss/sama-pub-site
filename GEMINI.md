@@ -440,4 +440,21 @@ Lorsque vous intervenez sur ce projet, suivez **scrupuleusement** les règles ci
   - `Lead` : Déclenché lors de la validation des devis ([`ContactCTA.tsx`](file:///c:/Users/360IQ/Documents/sama%20pu%20site/src/components/ContactCTA.tsx) et [`WebsiteOrderForm.tsx`](file:///c:/Users/360IQ/Documents/sama%20pu%20site/src/components/website-order/WebsiteOrderForm.tsx)).
   - `Contact` : Déclenché lors du clic sur les boutons WhatsApp directs ([`WhatsAppFloat.tsx`](file:///c:/Users/360IQ/Documents/sama%20pu%20site/src/components/WhatsAppFloat.tsx), [`ContactCTA.tsx`](file:///c:/Users/360IQ/Documents/sama%20pu%20site/src/components/ContactCTA.tsx), [`WebsiteOrderForm.tsx`](file:///c:/Users/360IQ/Documents/sama%20pu%20site/src/components/website-order/WebsiteOrderForm.tsx)).
 
-### 8. avant de pousser quelque chose sur github demande moi l'autorisation 
+### 8. Notifications Mobiles PWA & Cloche Interactive du Dashboard
+- **Cloche de notification interactive** ([`AdminHeader.tsx`](file:///c:/Users/360IQ/Documents/sama%20pu%20site/src/components/admin/AdminHeader.tsx)) :
+  - Affiche le compteur de devis non traités en direct avec point orange pulsé.
+  - Au clic, ouvre un tiroir déroulant responsive avec la liste des demandes en attente de réponse.
+  - Permet d'ouvrir le dossier du prospect en 1 clic.
+  - Intègre un bandeau d'activation des notifications push sur smartphone / ordinateur avec bouton de test immédiat.
+- **Service Worker & Manifest PWA** ([`public/sw.js`](file:///c:/Users/360IQ/Documents/sama%20pu%20site/public/sw.js) et [`public/manifest.json`](file:///c:/Users/360IQ/Documents/sama%20pu%20site/public/manifest.json)) :
+  - Support de l'installation de l'application sur smartphone (iOS / Android) en mode plein écran sans barre d'adresse navigateur.
+  - Gestion des réceptions push et du focus sur l'application au toucher de la notification.
+- **Service de Notifications & Synthèse Audio** ([`src/lib/notificationService.ts`](file:///c:/Users/360IQ/Documents/sama%20pu%20site/src/lib/notificationService.ts)) :
+  - Déclenche une alerte sonore carillon executive cristalline (via Web Audio API, 0 dépendance réseau).
+  - Déclenche la vibration mobile (`navigator.vibrate([200, 100, 200, 100, 200])`).
+  - Déclenche la notification push système sur le téléphone (`showNotification`).
+- **Synchronisation Temps Réel Supabase & Polling de secours** ([`src/app/admin/page.tsx`](file:///c:/Users/360IQ/Documents/sama%20pu%20site/src/app/admin/page.tsx)) :
+  - Écoute les `INSERT` sur la table `leads_quotes` via WebSocket Supabase Realtime.
+  - Polling de secours toutes les 25 secondes garantissant la réception même si le smartphone met en veille la connexion WebSocket en arrière-plan.
+
+### 9. avant de pousser quelque chose sur github demande moi l'autorisation 

@@ -11,6 +11,10 @@ import { AdminLockScreen } from "@/components/admin/AdminLockScreen";
 import { supabase } from "@/lib/supabase";
 import { Phone, Mail, CheckCircle2, User } from "lucide-react";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
+import {
+  registerServiceWorker,
+  sendLeadPushNotification,
+} from "@/lib/notificationService";
 
 export default function AdminDashboardPage() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -63,9 +67,57 @@ export default function AdminDashboardPage() {
   };
 
   useEffect(() => {
-    if (isAuthenticated) {
-      fetchLeads();
-    }
+    if (!isAuthenticated) return;
+
+    fetchLeads();
+
+    // 1. Initialise le Service Worker pour les notifications PWA et smartphones
+    registerServiceWorker();
+
+    // 2. Écoute temps réel Supabase sur la table leads_quotes
+    const channel = supabase
+      .channel("realtime-leads-quotes")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "leads_quotes" },
+        (payload) => {
+          const newLead = payload.new as LeadQuote;
+          setLeads((prev) => {
+            if (prev.some((l) => l.id === newLead.id)) return prev;
+            return [newLead, ...prev];
+          });
+          // Déclenche l'alerte sonore et la notification push sur smartphone / ordinateur
+          sendLeadPushNotification(newLead);
+        }
+      )
+      .subscribe();
+
+    // 3. Polling périodique (toutes les 25 secondes) en sécurité pour les mobiles en arrière-plan
+    const interval = setInterval(async () => {
+      try {
+        const { data, error } = await supabase
+          .from("leads_quotes")
+          .select("*")
+          .order("created_at", { ascending: false });
+
+        if (!error && data) {
+          setLeads((prev) => {
+            const freshLeads = data.filter((d) => !prev.some((p) => p.id === d.id));
+            if (freshLeads.length > 0 && prev.length > 0) {
+              sendLeadPushNotification(freshLeads[0]);
+            }
+            return data;
+          });
+        }
+      } catch (err) {
+        console.debug("Polling lead notice:", err);
+      }
+    }, 25000);
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(interval);
+    };
   }, [isAuthenticated]);
 
   // Update status handler
@@ -166,6 +218,13 @@ export default function AdminDashboardPage() {
     };
   }, [leads]);
 
+  // Demandes en attente pour la modale et la cloche de notification
+  const pendingLeads = useMemo(() => {
+    return leads.filter(
+      (l) => l.status === "new" || l.status === "nouveau" || l.status === "contacted" || l.status === "a_traiter"
+    );
+  }, [leads]);
+
   // Export CSV Handler
   const handleExportCSV = () => {
     const headers = [
@@ -252,6 +311,16 @@ export default function AdminDashboardPage() {
       <div className="flex-1 flex flex-col min-w-0">
         <AdminHeader
           unreadCount={stats.pending}
+          pendingLeads={pendingLeads}
+          onInspectLead={(lead) => {
+            setInspectingLead(lead);
+            setSelectedLeadId(lead.id);
+            setIsInspectModalOpen(true);
+          }}
+          onViewAllPending={() => {
+            setStatusFilter("a_traiter");
+            setSearchTerm("");
+          }}
           onLogout={handleLogout}
           onMenuToggle={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         />
