@@ -200,6 +200,27 @@ const styles = StyleSheet.create({
     marginTop: 2,
     lineHeight: 1.25,
   },
+  clientNeedBox: {
+    marginTop: 3.5,
+    paddingTop: 3,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.slate200,
+    flexDirection: "row",
+    alignItems: "flex-start",
+  },
+  clientNeedLabel: {
+    fontSize: 6.8,
+    fontFamily: "Helvetica-Bold",
+    color: COLORS.orange,
+    width: 95,
+  },
+  clientNeedText: {
+    fontSize: 6.8,
+    fontFamily: "Helvetica-Oblique",
+    color: COLORS.slate800,
+    width: 430,
+    lineHeight: 1.25,
+  },
 
   // Cadre Mission & Placement Intelligent sur Meta (remplace l'ancien tableau pour clarté maximale)
   missionCard: {
@@ -605,6 +626,12 @@ export const DevisPdfDocument: React.FC<DevisPdfDocumentProps> = ({
           <Text style={styles.subjectTitle}>{devis.titre_devis || "Campagne Publicitaire Meta Ads — Visibilité & Ventes"}</Text>
           {devis.introduction ? (
             <Text style={styles.subjectIntro}>{devis.introduction}</Text>
+          ) : null}
+          {devis.description_projet ? (
+            <View style={styles.clientNeedBox}>
+              <Text style={styles.clientNeedLabel}>Projet & Besoin client :</Text>
+              <Text style={styles.clientNeedText}>« {devis.description_projet} »</Text>
+            </View>
           ) : null}
         </View>
 

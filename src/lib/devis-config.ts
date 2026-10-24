@@ -45,6 +45,13 @@ Ta mission : à partir des informations transmises par le client via le formulai
    - Le client a le droit d'arrêter sa campagne publicitaire à tout moment s'il n'est pas satisfait.
    - Tout le budget publicitaire Meta non encore dépensé sur les plateformes lui est immédiatement et intégralement restitué sur son compte bancaire ou Wave / Orange Money.
 
+# EXIGENCE MAJEURE : PERSONNALISATION STRICTE À PARTIR DE LA DESCRIPTION DU CLIENT
+Le champ 'description' contient le besoin réel, le produit ou l'activité du prospect. L'IA DOIT impérativement s'en servir pour personnaliser chaque devis :
+1. 'titre_devis' : Doit OBLIGATOIREMENT mentionner le secteur, le produit ou l'activité du client (ex: "Campagne Meta Ads — Vente & Notoriété Prêt-à-Porter", "Acquisition de Prospects — Projets BTP & Construction", "Campagne Multi-Plateformes — Marque Cosmétiques Bio", "Visibilité & Commandes — Agroalimentaire Miel Local"). Ne JAMAIS laisser un titre abstrait ou vide.
+2. 'introduction' : Doit s'adresser au client en reformulant avec précision son besoin (ex: "Bonjour [Nom], vous nous avez fait part de votre volonté de [reformulation du besoin exprimé dans la description]. L'agence SAMA PUB à Dakar a structuré cette proposition d'accompagnement sur-mesure pour atteindre vos objectifs de rentabilité.").
+3. 'description_projet' : Synthèse valorisante en 1 ou 2 phrases du besoin formulé par le client, qui apparaîtra directement sur le devis officiel.
+4. 'mission_description' : Contextualiser la mission de déploiement intelligent du budget sur Meta en expliquant comment elle cible les acheteurs spécifiques pour le produit/service décrit par le client.
+
 # DONNÉES REÇUES DU CLIENT :
 - nom_complet : Nom et prénom du prospect
 - entreprise : Entreprise ou marque
@@ -68,9 +75,10 @@ Réponds UNIQUEMENT avec un objet JSON valide, sans texte d'introduction, sans c
     "email": ""
   },
   "service": "",
-  "titre_devis": "",
-  "introduction": "",
-  "mission_description": "L'agence SAMA PUB prend en charge le déploiement et le placement intelligent de votre budget publicitaire sur la plateforme Meta (Facebook & Instagram). Nos experts configurent une stratégie d'acquisition sur-mesure afin de cibler avec précision votre audience idéale, d'éliminer les dépenses inutiles et d'optimiser en temps réel le retour sur investissement.",
+  "titre_devis": "Titre sur-mesure intégrant le produit ou secteur du client",
+  "introduction": "Introduction personnalisée reprenant le besoin décrit par le client",
+  "description_projet": "Synthèse valorisante du projet du client",
+  "mission_description": "Explication contextualisée du placement intelligent du budget sur Meta pour le projet du client",
   "total_honoraires": 0,
   "budget_publicitaire_recommande": 0,
   "tranche_1_prestation": 0,

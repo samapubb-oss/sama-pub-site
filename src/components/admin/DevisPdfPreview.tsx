@@ -151,16 +151,31 @@ export const DevisPdfPreview: React.FC<DevisPdfPreviewProps> = ({
       {/* CARTE RESPONSIVE MOBILE : affichée uniquement sur smartphone pour une lisibilité instantanée */}
       <div className="block sm:hidden bg-white rounded-2xl border border-slate-200 p-4 space-y-3 shadow-xs">
         <div className="flex items-center justify-between pb-2.5 border-b border-slate-100">
-          <div>
+          <div className="min-w-0 pr-2">
             <span className="text-[10px] font-bold text-sama-orange uppercase tracking-wider">
               Récapitulatif Mobile
             </span>
-            <h4 className="text-sm font-bold text-slate-900">{devis.client.nom}</h4>
+            <h4 className="text-sm font-bold text-slate-900 truncate">{devis.client.nom}</h4>
+            {devis.titre_devis && (
+              <p className="text-[11px] font-semibold text-slate-600 mt-0.5 line-clamp-1">
+                {devis.titre_devis}
+              </p>
+            )}
           </div>
-          <span className="text-xs font-mono font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">
+          <span className="text-xs font-mono font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md shrink-0">
             15% Prestation
           </span>
         </div>
+
+        {/* Projet & Besoin client */}
+        {devis.description_projet && (
+          <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-[11px] text-slate-700">
+            <span className="font-bold text-sama-orange block text-[10px] uppercase tracking-wider mb-0.5">
+              Projet & Objectif client :
+            </span>
+            <p className="italic leading-snug">« {devis.description_projet} »</p>
+          </div>
+        )}
 
         {/* Chiffres clés */}
         <div className="space-y-2 text-xs">

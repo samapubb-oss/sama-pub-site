@@ -206,6 +206,7 @@
     - *Modalité de paiement échelonné en 2 tranches (50% / 50%)* : 50% au lancement et 50% restant au bout de 15 jours de campagne.
     - *Mission & Déploiement Intelligent* : Remplacement des tableaux itemisés superflus par un cadre d'engagement de déploiement et placement intelligent du budget sur Meta (Ciblage chirurgical, annonces performantes, optimisation continue).
     - *Clause de Liberté & Remboursement Garanti* : Possibilité d'arrêter la campagne à tout moment avec restitution immédiate et intégrale du budget pub Meta non dépensé.
+    - *Personnalisation Intelligente basée sur la description client* : Analyse sémantique de la description soumise par le prospect pour générer un titre de devis sur-mesure (mentionnant explicitement le produit ou secteur du client), une introduction personnalisée, un encart dédié « Projet & Besoin client » directement imprimé sur le devis PDF, et une contextualisation de la mission de placement du budget publicitaire sur Meta.
     - *Double espace de signature* : Encart officiel Direction SAMA PUB à gauche et espace d'approbation et signature client à droite.
   - **100% Responsive Mobile** : Carte récapitulative mobile native, bouton « Ouvrir en plein écran » pour la visionneuse native smartphone et bouton « Télécharger le PDF ».
   - Format calibré pour tenir rigoureusement sur **1 seule page A4**.

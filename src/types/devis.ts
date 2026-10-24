@@ -20,6 +20,7 @@ export interface DevisData {
   service: string;
   titre_devis: string;
   introduction: string;
+  description_projet?: string; // Synthèse fidèle du besoin/projet exprimé par le client
   lignes: LigneDevis[];
   mission_description?: string; // Description de la mission et du placement intelligent sur Meta
   total_honoraires: number; // Prestation de l'agence (15% du budget Meta)

@@ -52,8 +52,96 @@ function parseClaudeJson(rawContent: string): DevisData {
   return JSON.parse(cleaned.trim());
 }
 
+// Analyse intelligente de la description du prospect pour contextualisation maximale
+function analyzeClientDescription(
+  rawDesc: string,
+  clientName: string,
+  serviceKey: string
+) {
+  const clean = (rawDesc || "").trim();
+  const lower = clean.toLowerCase();
+
+  // Détection du secteur ou produit clé
+  let theme = "";
+  if (lower.includes("chaussure") || lower.includes("soulier") || lower.includes("basket") || lower.includes("maroquinerie")) {
+    theme = "Chaussures & Maroquinerie";
+  } else if (lower.includes("vêtement") || lower.includes("vetement") || lower.includes("mode") || lower.includes("habit") || lower.includes("couture") || lower.includes("robe") || lower.includes("tissu")) {
+    theme = "Prêt-à-Porter & Mode";
+  } else if (lower.includes("bijou") || lower.includes("montre") || lower.includes("accessoire")) {
+    theme = "Bijoux & Accessoires de Luxe";
+  } else if (lower.includes("cosmétique") || lower.includes("cosmetique") || lower.includes("beauté") || lower.includes("beaute") || lower.includes("soin") || lower.includes("crème") || lower.includes("creme") || lower.includes("savon")) {
+    theme = "Cosmétiques & Soins Beauté";
+  } else if (lower.includes("btp") || lower.includes("construction") || lower.includes("bâtiment") || lower.includes("batiment") || lower.includes("chantier") || lower.includes("rénovation") || lower.includes("renovation")) {
+    theme = "BTP, Construction & Rénovation";
+  } else if (lower.includes("immobilier") || lower.includes("terrain") || lower.includes("villa") || lower.includes("appartement") || lower.includes("parcelle")) {
+    theme = "Immobilier & Promotion Foncière";
+  } else if (lower.includes("miel")) {
+    theme = "Miel Naturel & Produits de la Ruche";
+  } else if (lower.includes("alimentaire") || lower.includes("agro") || lower.includes("restaurant") || lower.includes("traiteur") || lower.includes("boisson") || lower.includes("repas") || lower.includes("fast food")) {
+    theme = "Restauration & Agroalimentaire";
+  } else if (lower.includes("formation") || lower.includes("cours") || lower.includes("école") || lower.includes("ecole") || lower.includes("étudiant") || lower.includes("etudiant") || lower.includes("certif")) {
+    theme = "Formation & Éducation";
+  } else if (lower.includes("e-commerce") || lower.includes("boutique") || lower.includes("vente en ligne") || lower.includes("commander") || lower.includes("magasin")) {
+    theme = "E-Commerce & Vente de Produits";
+  } else if (lower.includes("santé") || lower.includes("sante") || lower.includes("médical") || lower.includes("medical") || lower.includes("clinique")) {
+    theme = "Santé & Soins Médicaux";
+  }
+
+  // Synthèse soignée du besoin exprimé
+  let descriptionProjet = clean;
+  if (clean.length > 250) {
+    descriptionProjet = clean.slice(0, 247) + "...";
+  } else if (clean.length < 5) {
+    descriptionProjet = "Développement de la visibilité et acquisition de nouveaux clients qualifiés sur Meta.";
+  }
+
+  // Titre sur-mesure intégrant la description ou le thème
+  let titreDevis = "Campagne Publicitaire Meta Ads — Visibilité & Ventes";
+  if (theme) {
+    if (serviceKey.includes("multi")) {
+      titreDevis = `Campagne Multi-Plateformes — ${theme}`;
+    } else if (serviceKey.includes("acquisition") || serviceKey.includes("prospect")) {
+      titreDevis = `Tunnel d'Acquisition de Prospects — ${theme}`;
+    } else if (serviceKey.includes("global")) {
+      titreDevis = `Accompagnement 360° — ${theme}`;
+    } else {
+      titreDevis = `Campagne Meta Ads — Vente & Notoriété : ${theme}`;
+    }
+  } else if (clean.length >= 12 && !lower.includes("bonjour") && !lower.includes("test")) {
+    const firstSentence = clean.split(/[.!?\n]/)[0].trim();
+    if (firstSentence.length >= 10 && firstSentence.length <= 60) {
+      titreDevis = `Campagne Meta Ads — ${firstSentence}`;
+    }
+  }
+
+  // Introduction sur-mesure reprenant le besoin client
+  const introContext = theme
+    ? `votre projet dans le secteur « ${theme} »`
+    : clean.length >= 15
+    ? `votre projet (« ${descriptionProjet.length > 70 ? descriptionProjet.slice(0, 67) + "..." : descriptionProjet} »)`
+    : "le développement de votre activité digitale";
+
+  const introduction = `Bonjour ${clientName}, suite à votre demande sur notre site concernant ${introContext}, l'agence SAMA PUB à Dakar a élaboré cette proposition d'accompagnement sur-mesure afin d'accélérer vos résultats commerciaux.`;
+
+  // Mission contextualisée pour le déploiement sur Meta
+  const missionDesc = theme
+    ? `L'agence SAMA PUB prend en charge le déploiement et le placement intelligent de l'intégralité de votre budget publicitaire sur la plateforme Meta (Facebook & Instagram). Nos experts configurent une stratégie d'acquisition chirurgicale spécifiquement optimisée pour promouvoir vos offres de ${theme}, cibler avec précision les acheteurs qualifiés à Dakar et au Sénégal, éliminer les dépenses inutiles et maximiser vos ventes.`
+    : `L'agence SAMA PUB prend en charge le déploiement et le placement intelligent de l'intégralité de votre budget publicitaire sur la plateforme Meta (Facebook & Instagram). Nos experts configurent une stratégie d'acquisition sur-mesure adaptée aux spécificités de votre projet (« ${descriptionProjet.length > 90 ? descriptionProjet.slice(0, 87) + "..." : descriptionProjet} ») afin de cibler avec précision votre audience idéale au Sénégal et de maximiser vos résultats commerciaux.`;
+
+  return {
+    titreDevis,
+    introduction,
+    descriptionProjet,
+    missionDesc,
+  };
+}
+
 // Recalcul strict de tous les totaux côté serveur selon la règle des 15%
-function sanitizeAndRecalculateTotals(data: any, forcedMetaBudget?: number): DevisData {
+function sanitizeAndRecalculateTotals(
+  data: any,
+  forcedMetaBudget?: number,
+  fallbackDescription?: string
+): DevisData {
   const metaBudget =
     forcedMetaBudget !== undefined && forcedMetaBudget > 0
       ? forcedMetaBudget
@@ -68,6 +156,13 @@ function sanitizeAndRecalculateTotals(data: any, forcedMetaBudget?: number): Dev
   const totalGeneral = metaBudget + totalHonoraires;
 
   const clientName = String(data.client?.nom || "").trim() || "Client";
+
+  // Récupération ou déduction du projet client
+  const descriptionProjet =
+    String(data.description_projet || "").trim() ||
+    (fallbackDescription && fallbackDescription.trim().length >= 5
+      ? fallbackDescription.trim()
+      : "Développement des ventes et acquisition ciblée de clients qualifiés sur Meta.");
 
   const missionDesc =
     String(data.mission_description || "").trim() ||
@@ -88,7 +183,8 @@ function sanitizeAndRecalculateTotals(data: any, forcedMetaBudget?: number): Dev
     titre_devis: String(data.titre_devis || "Campagne Publicitaire Meta Ads — Visibilité & Ventes").trim(),
     introduction:
       String(data.introduction || "").trim() ||
-      `Bonjour ${clientName}, suite à votre demande sur notre site, l'agence SAMA PUB à Dakar vous présente cette proposition d'accompagnement sur-mesure pour votre projet digital.`,
+      `Bonjour ${clientName}, suite à votre demande sur notre site concernant votre projet (« ${descriptionProjet.length > 70 ? descriptionProjet.slice(0, 67) + "..." : descriptionProjet} »), l'agence SAMA PUB à Dakar vous présente cette proposition d'accompagnement sur-mesure.`,
+    description_projet: descriptionProjet,
     mission_description: missionDesc,
     lignes: [],
     total_honoraires: totalHonoraires,
@@ -123,7 +219,7 @@ function generateDynamicDevisFromLead(body: DevisGenerationRequest): DevisData {
     cleanedEntreprise = "";
   }
 
-  // 2. Contrôle de la description
+  // 2. Contrôle et analyse approfondie de la description
   const cleanDescription = (body.description || "").trim();
   if (
     cleanDescription.length < 15 ||
@@ -142,17 +238,13 @@ function generateDynamicDevisFromLead(body: DevisGenerationRequest): DevisData {
 
   const serviceKey = (body.service || "").toLowerCase();
   let serviceTitle = "Media Buying (Campagnes Pubs)";
-  let devisTitle = "Campagne Publicitaire Meta Ads — Visibilité & Ventes";
 
   if (serviceKey.includes("multi")) {
     serviceTitle = "Publicité Multi-canaux";
-    devisTitle = "Campagne Multi-plateformes (Meta, Google & TikTok Ads)";
   } else if (serviceKey.includes("acquisition") || serviceKey.includes("prospect")) {
     serviceTitle = "Acquisition de Prospects Qualifiés";
-    devisTitle = "Tunnel d'Acquisition & Génération de Leads Qualifiés";
   } else if (serviceKey.includes("global") || serviceKey.includes("marketing")) {
     serviceTitle = "Marketing Digital Global";
-    devisTitle = "Accompagnement Stratégique 360° & Croissance Digitale";
   }
 
   const clientName = body.nom_complet || "Client";
@@ -160,10 +252,13 @@ function generateDynamicDevisFromLead(body: DevisGenerationRequest): DevisData {
   const formattedPrestation = new Intl.NumberFormat("fr-FR").format(prestationAgence).replace(/\u202F/g, " ");
   const formattedTranche1 = new Intl.NumberFormat("fr-FR").format(tranche1).replace(/\u202F/g, " ");
 
-  const messageWhatsapp = `Bonjour ${clientName}, l'agence SAMA PUB a préparé votre devis personnalisé pour ${serviceTitle}. Budget pub Meta (100% alloué à vos annonces) : ${formattedMeta} FCFA. Prestation de l'agence (15%) : ${formattedPrestation} FCFA (payable au choix en 2 tranches de ${formattedTranche1} FCFA). Arrêt possible à tout moment avec remboursement garanti du budget pub non dépensé. Le devis officiel en PDF est joint ci-dessous !`;
+  // Analyse et contextualisation basée sur la description client
+  const analysis = analyzeClientDescription(cleanDescription, clientName, serviceKey);
 
-  const emailObjet = `SAMA PUB — Votre proposition de devis : ${serviceTitle}`;
-  const emailCorps = `Bonjour ${clientName},\n\nNous vous remercions pour votre intérêt envers SAMA PUB. Comme convenu, veuillez trouver ci-joint notre proposition commerciale détaillée pour votre projet.\n\nRestant à votre entière disposition,\nL'équipe SAMA PUB Dakar`;
+  const messageWhatsapp = `Bonjour ${clientName}, l'agence SAMA PUB a préparé votre devis personnalisé pour ${analysis.titreDevis}. Budget pub Meta (100% alloué à vos annonces) : ${formattedMeta} FCFA. Prestation de l'agence (15%) : ${formattedPrestation} FCFA (payable au choix en 2 tranches de ${formattedTranche1} FCFA). Arrêt possible à tout moment avec remboursement garanti du budget pub non dépensé. Le devis officiel en PDF est joint ci-dessous !`;
+
+  const emailObjet = `SAMA PUB — Votre proposition de devis : ${analysis.titreDevis}`;
+  const emailCorps = `Bonjour ${clientName},\n\nNous vous remercions pour votre intérêt envers SAMA PUB. Suite à l'étude de votre projet (« ${analysis.descriptionProjet} »), veuillez trouver ci-joint notre proposition commerciale détaillée.\n\nRestant à votre entière disposition,\nL'équipe SAMA PUB Dakar`;
 
   return sanitizeAndRecalculateTotals(
     {
@@ -176,8 +271,10 @@ function generateDynamicDevisFromLead(body: DevisGenerationRequest): DevisData {
         email: body.email || "",
       },
       service: serviceTitle,
-      titre_devis: devisTitle,
-      introduction: `Bonjour ${clientName}, suite à votre demande sur notre site, l'agence SAMA PUB à Dakar vous présente cette proposition d'accompagnement sur-mesure pour votre projet digital.`,
+      titre_devis: analysis.titreDevis,
+      introduction: analysis.introduction,
+      description_projet: analysis.descriptionProjet,
+      mission_description: analysis.missionDesc,
       lignes: [],
       notes: "",
       conditions_paiement: "",
@@ -185,7 +282,8 @@ function generateDynamicDevisFromLead(body: DevisGenerationRequest): DevisData {
       email_objet: emailObjet,
       email_corps: emailCorps,
     },
-    metaBudget
+    metaBudget,
+    cleanDescription
   );
 }
 
@@ -281,7 +379,7 @@ export async function POST(req: NextRequest) {
         const textBlock = response.content.find((block) => block.type === "text");
         if (textBlock && textBlock.type === "text") {
           const parsed = parseClaudeJson(textBlock.text);
-          finalizedDevis = sanitizeAndRecalculateTotals(parsed, metaBudget);
+          finalizedDevis = sanitizeAndRecalculateTotals(parsed, metaBudget, description);
         } else {
           finalizedDevis = generateDynamicDevisFromLead(body);
         }
