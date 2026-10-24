@@ -9,6 +9,9 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  experimental: {
+    serverComponentsExternalPackages: ['@react-pdf/renderer', 'pdfkit'],
+  },
   images: {
     formats: ['image/avif', 'image/webp'],
     remotePatterns: [
