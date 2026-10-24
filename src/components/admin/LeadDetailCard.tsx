@@ -18,6 +18,7 @@ import {
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import type { LeadQuote } from "./LeadsTable";
 import { getSavedDevis } from "@/lib/devis-storage";
+import { cleanWhatsappNumber } from "@/lib/whatsapp-utils";
 
 interface LeadDetailCardProps {
   lead: LeadQuote | null;
@@ -76,7 +77,7 @@ export const LeadDetailCard: React.FC<LeadDetailCardProps> = ({
     ) || statusOptions[0];
 
   const rawPhone = lead.whatsapp_number || lead.contact_value || "+221 76 142 28 58";
-  const cleanPhone = rawPhone.replace(/\D/g, "");
+  const cleanPhone = cleanWhatsappNumber(rawPhone);
   const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(
     `Bonjour ${lead.full_name}, je suis l'agence SAMA PUB à Dakar. Nous faisons suite à votre demande de devis pour ${lead.service_requested}.`
   )}`;

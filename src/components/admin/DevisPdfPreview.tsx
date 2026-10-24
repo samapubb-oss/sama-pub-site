@@ -15,15 +15,18 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { formatFcfa } from "@/lib/pdf-utils";
+import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 
 interface DevisPdfPreviewProps {
   devis: DevisData;
   onBlobReady?: (blob: Blob, url: string) => void;
+  onSendWhatsApp?: () => void;
 }
 
 export const DevisPdfPreview: React.FC<DevisPdfPreviewProps> = ({
   devis,
   onBlobReady,
+  onSendWhatsApp,
 }) => {
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(true);
@@ -126,6 +129,18 @@ export const DevisPdfPreview: React.FC<DevisPdfPreviewProps> = ({
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
+          {onSendWhatsApp && (
+            <button
+              type="button"
+              onClick={onSendWhatsApp}
+              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
+              title="Envoyer le devis directement sur WhatsApp au client"
+            >
+              <WhatsAppIcon className="w-4 h-4 text-white shrink-0" />
+              <span>Envoyer sur WhatsApp</span>
+            </button>
+          )}
+
           <a
             href={blobUrl}
             target="_blank"
@@ -133,7 +148,7 @@ export const DevisPdfPreview: React.FC<DevisPdfPreviewProps> = ({
             className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-sama-orange hover:bg-sama-orange-hover text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
           >
             <Eye className="w-4 h-4 shrink-0" />
-            <span>Ouvrir en plein écran</span>
+            <span>Plein écran</span>
           </a>
 
           <a
@@ -205,6 +220,18 @@ export const DevisPdfPreview: React.FC<DevisPdfPreviewProps> = ({
             <strong>Remboursement garanti :</strong> Le client peut arrêter la campagne à tout moment et récupérer tout le budget Meta restant non dépensé.
           </span>
         </div>
+
+        {/* Bouton direct d'envoi WhatsApp au client */}
+        {onSendWhatsApp && (
+          <button
+            type="button"
+            onClick={onSendWhatsApp}
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-sama-orange hover:bg-sama-orange-hover text-white text-xs font-bold transition-all shadow-md shadow-orange-500/20 cursor-pointer"
+          >
+            <WhatsAppIcon className="w-4 h-4 text-white shrink-0" />
+            <span>Envoyer le devis sur WhatsApp ({devis.client?.nom})</span>
+          </button>
+        )}
 
         {/* Bouton direct d'ouverture du document complet */}
         <a

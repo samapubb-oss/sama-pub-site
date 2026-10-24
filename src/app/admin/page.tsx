@@ -15,6 +15,7 @@ import {
   registerServiceWorker,
   sendLeadPushNotification,
 } from "@/lib/notificationService";
+import { cleanWhatsappNumber } from "@/lib/whatsapp-utils";
 
 export default function AdminDashboardPage() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -403,7 +404,7 @@ export default function AdminDashboardPage() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {leads.map((client) => {
-                    const phoneClean = (client.whatsapp_number || "").replace(/\D/g, "");
+                    const phoneClean = cleanWhatsappNumber(client.whatsapp_number || "");
                     return (
                       <div
                         key={client.id}

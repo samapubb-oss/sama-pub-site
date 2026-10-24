@@ -1,23 +1,37 @@
 /**
- * Utilitaires d'envoi WhatsApp et de partage natif pour les devis
+ * Utilitaires d'envoi WhatsApp et de téléchargement pour les devis SAMA PUB
  */
 
 /**
- * Nettoie un numéro de téléphone en ne conservant que les chiffres
+ * Nettoie et normalise un numéro de téléphone pour WhatsApp
+ * Supporte les formats sénégalais (9 chiffres sans indicatif, avec 221, avec 00221, etc.)
+ * et internationaux.
  * Ex: "+221 78 521 53 92" -> "221785215392"
+ * Ex: "77 123 45 67" -> "221771234567"
+ * Ex: "077 123 45 67" -> "221771234567"
  */
 export function cleanWhatsappNumber(phone: string): string {
   if (!phone) return "";
-  const cleaned = phone.replace(/\D/g, "");
+  let cleaned = phone.replace(/\D/g, "");
 
-  // Si l'utilisateur sénégalais a saisi 9 chiffres sans l'indicatif 221 (ex: 785215392)
-  if (cleaned.length === 9 && (cleaned.startsWith("7") || cleaned.startsWith("33"))) {
-    return `221${cleaned}`;
+  // Si indicatif international saisi avec 00 (ex: 0022177...)
+  if (cleaned.startsWith("00")) {
+    cleaned = cleaned.replace(/^00/, "");
   }
 
-  // Si indicatif 00221 saisi
-  if (cleaned.startsWith("00221")) {
-    return cleaned.replace(/^00/, "");
+  // Si l'utilisateur a tapé +221 suivi d'un zéro inutile (ex: 221077...)
+  if (cleaned.startsWith("2210") && cleaned.length === 13) {
+    cleaned = `221${cleaned.slice(4)}`;
+  }
+
+  // Si numéro à 10 chiffres commençant par 0 (format local avec zéro initial : ex 077...)
+  if (cleaned.length === 10 && cleaned.startsWith("0")) {
+    cleaned = `221${cleaned.slice(1)}`;
+  }
+
+  // Si numéro sénégalais à 9 chiffres sans indicatif (ex: 77 123 45 67 ou 33 821 00 00)
+  if (cleaned.length === 9 && (cleaned.startsWith("7") || cleaned.startsWith("33"))) {
+    return `221${cleaned}`;
   }
 
   return cleaned;
@@ -38,68 +52,70 @@ export function triggerBlobDownload(blob: Blob, filename: string): void {
 }
 
 export interface ShareResult {
-  mode: "native" | "desktop_fallback";
+  mode: "direct_whatsapp";
   success: boolean;
+  waUrl: string;
+  cleanPhone: string;
   message?: string;
 }
 
 /**
- * Envoie le devis sur WhatsApp avec gestion intelligente Mobile / Desktop
+ * Envoie le devis sur WhatsApp en redirigeant DIRECTEMENT vers la discussion du client
+ *
+ * 1. Télécharge automatiquement le PDF sur l'appareil (prêt à être joint en 1 clic)
+ * 2. Redirige immédiatement vers la discussion WhatsApp du contact (wa.me/{phone}?text=...)
+ *    avec le message pré-rempli sur mesure.
  */
 export async function sendDevisViaWhatsApp(
   pdfBlob: Blob,
   filename: string,
   rawWhatsapp: string,
-  messageText: string
+  messageText: string,
+  clientName?: string
 ): Promise<ShareResult> {
   const cleanPhone = cleanWhatsappNumber(rawWhatsapp);
 
   if (!cleanPhone || cleanPhone.length < 8) {
     throw new Error(
-      "Le numéro WhatsApp du client semble invalide. Veuillez vérifier le numéro dans la fiche."
+      "Le numéro WhatsApp du client semble invalide ou manquant. Veuillez vérifier le numéro dans sa fiche."
     );
   }
 
   const encodedText = encodeURIComponent(messageText || "Bonjour, voici votre devis SAMA PUB.");
   const waUrl = `https://wa.me/${cleanPhone}?text=${encodedText}`;
 
-  // 1. Détection du support de partage de fichier natif (principalement smartphones Android & iOS)
-  const pdfFile = new File([pdfBlob], filename, { type: "application/pdf" });
-
-  if (
+  // Détection smartphone / tablette vs ordinateur de bureau
+  const isMobile =
     typeof navigator !== "undefined" &&
-    typeof navigator.share === "function" &&
-    typeof navigator.canShare === "function" &&
-    navigator.canShare({ files: [pdfFile] })
-  ) {
-    try {
-      await navigator.share({
-        files: [pdfFile],
-        title: filename,
-        text: messageText,
-      });
-      return {
-        mode: "native",
-        success: true,
-      };
-    } catch (err: any) {
-      // Si l'utilisateur n'a pas simplement annulé la boîte de dialogue native
-      if (err.name !== "AbortError") {
-        console.warn("Échec partage natif, bascule sur la solution de repli :", err);
-      } else {
-        return { mode: "native", success: false, message: "Partage annulé." };
-      }
-    }
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent
+    );
+
+  if (isMobile) {
+    // Sur smartphone :
+    // 1. Déclencher le téléchargement du PDF
+    triggerBlobDownload(pdfBlob, filename);
+
+    // 2. Redirection directe vers la discussion WhatsApp du client
+    // Un court délai garantit le bon lancement du téléchargement par le navigateur mobile
+    setTimeout(() => {
+      window.location.href = waUrl;
+    }, 250);
+  } else {
+    // Sur ordinateur de bureau :
+    // 1. Ouvrir WhatsApp Web / Desktop dans un nouvel onglet directement dans le flux du clic
+    window.open(waUrl, "_blank", "noopener,noreferrer");
+
+    // 2. Déclencher le téléchargement du PDF
+    triggerBlobDownload(pdfBlob, filename);
   }
 
-  // 2. Solution de repli (Ordinateur de bureau ou navigateur sans canShare files) :
-  // Téléchargement automatique du PDF + ouverture de WhatsApp Web dans un nouvel onglet
-  triggerBlobDownload(pdfBlob, filename);
-  window.open(waUrl, "_blank", "noopener,noreferrer");
-
+  const targetName = clientName ? clientName : "le client";
   return {
-    mode: "desktop_fallback",
+    mode: "direct_whatsapp",
     success: true,
-    message: "Joins le PDF qui vient d'être téléchargé, puis envoie.",
+    waUrl,
+    cleanPhone,
+    message: `Devis PDF téléchargé. Redirection vers la discussion WhatsApp avec ${targetName} (+${cleanPhone}).`,
   };
 }

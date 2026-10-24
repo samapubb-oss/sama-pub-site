@@ -30,7 +30,11 @@ import type { DevisData } from "@/types/devis";
 import { getSavedDevis, saveDevis, removeSavedDevis } from "@/lib/devis-storage";
 import dynamic from "next/dynamic";
 import { getDevisFilename } from "@/lib/pdf-utils";
-import { sendDevisViaWhatsApp, triggerBlobDownload } from "@/lib/whatsapp-utils";
+import {
+  sendDevisViaWhatsApp,
+  triggerBlobDownload,
+  cleanWhatsappNumber,
+} from "@/lib/whatsapp-utils";
 
 const DevisPdfPreview = dynamic(
   () => import("./DevisPdfPreview").then((mod) => mod.DevisPdfPreview),
@@ -145,7 +149,7 @@ export const LeadInspectionModal: React.FC<LeadInspectionModalProps> = ({
   };
 
   const rawPhone = lead.whatsapp_number || lead.contact_value || "+221 76 142 28 58";
-  const cleanPhone = rawPhone.replace(/\D/g, "");
+  const cleanPhone = cleanWhatsappNumber(rawPhone);
   const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(
     `Bonjour ${lead.full_name}, je suis l'agence SAMA PUB à Dakar. Nous faisons suite à votre demande de devis pour ${lead.service_requested}.`
   )}`;
@@ -233,14 +237,21 @@ export const LeadInspectionModal: React.FC<LeadInspectionModalProps> = ({
 
     try {
       const filename = getDevisFilename(lead.company_name || lead.full_name, devis.numero_devis || lead.id);
+      const targetPhone =
+        lead.whatsapp_number ||
+        lead.contact_value ||
+        devis.client?.whatsapp ||
+        "";
+
       const res = await sendDevisViaWhatsApp(
         pdfBlob,
         filename,
-        lead.whatsapp_number || lead.contact_value || "",
-        devis.message_whatsapp
+        targetPhone,
+        devis.message_whatsapp,
+        lead.full_name || devis.client?.nom || "Client"
       );
 
-      if (res.mode === "desktop_fallback" && res.message) {
+      if (res.message) {
         setToastMessage(res.message);
       }
     } catch (err: any) {
@@ -635,7 +646,11 @@ export const LeadInspectionModal: React.FC<LeadInspectionModalProps> = ({
               )}
 
               {/* Composant PDF et aperçu direct */}
-              <DevisPdfPreview devis={devis} onBlobReady={(blob) => setPdfBlob(blob)} />
+              <DevisPdfPreview
+                devis={devis}
+                onBlobReady={(blob) => setPdfBlob(blob)}
+                onSendWhatsApp={handleSendWhatsApp}
+              />
             </div>
           )}
 
