@@ -208,6 +208,11 @@
     - *Clause de Liberté & Remboursement Garanti* : Possibilité d'arrêter la campagne à tout moment avec restitution immédiate et intégrale du budget pub Meta non dépensé.
     - *Personnalisation Intelligente basée sur la description client* : Analyse sémantique de la description soumise par le prospect pour générer un titre de devis sur-mesure (mentionnant explicitement le produit ou secteur du client), une introduction personnalisée, un encart dédié « Projet & Besoin client » directement imprimé sur le devis PDF, et une contextualisation de la mission de placement du budget publicitaire sur Meta.
     - *Double espace de signature* : Encart officiel Direction SAMA PUB à gauche et espace d'approbation et signature client à droite.
+  - **Redirection Directe & Instantanée WhatsApp (`sendDevisViaWhatsApp`, `whatsapp-utils.ts`)** :
+    - Normalisation internationale stricte du numéro client (conversion automatique des formats sénégalais `+221`, `07...`, `77...` en `221XXXXXXXXX`).
+    - Téléchargement automatique et immédiat du document PDF A4 sur l'appareil au clic.
+    - Redirection directe sans intermédiaire vers la discussion WhatsApp spécifique du prospect (`https://wa.me/221XXXXXXXXX`) avec le message d'introduction commercial pré-rempli (suppression totale du sélecteur de partage générique OS qui imposait de rechercher le contact).
+    - Bouton d'envoi accessible en 1 clic dans le pied de page de la modale, dans le bandeau de l'aperçu et au centre de la carte récapitulative mobile.
   - **100% Responsive Mobile** : Carte récapitulative mobile native, bouton « Ouvrir en plein écran » pour la visionneuse native smartphone et bouton « Télécharger le PDF ».
   - Format calibré pour tenir rigoureusement sur **1 seule page A4**.
 - **Alias `/dashboard`** : Redirection automatique vers `/admin`.
