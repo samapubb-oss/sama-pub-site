@@ -211,6 +211,8 @@
   - **Route Dédiée & Permanente PDF (`/api/devis-pdf?id=...`, `route.ts`)** :
     - Route serveur Next.js générant et diffusant directement le document PDF officiel haute fidélité (`Content-Type: application/pdf`).
     - Résout définitivement l'erreur Chromium `ERR_FILE_NOT_FOUND` liée à la révocation prématurée des URL `blob:`.
+    - **Compatibilité Serveur Vercel (Node.js)** : Déclaration explicite de `runtime = 'nodejs'` et passage à `renderToBuffer()` officiel de `@react-pdf/renderer` pour un streaming PDF direct et ultra-rapide.
+    - **Sécurité Anti-Crash du Logo** : Validation stricte des protocoles d'image (`data:`, `http://`, `https://`) et repli automatique sur le monogramme vectoriel officiel **SP** en l'absence de chemin local valide, éliminant totalement les erreurs système Linux `ENOENT: no such file or directory, open '/images/logo-sp.png'`.
     - Permet au client de consulter et télécharger son devis officiel en 1 clic depuis WhatsApp via une URL HTTPS stable et permanente.
   - **Visionneuse Plein Écran Immersive Intégrée (`DevisPdfPreview.tsx`)** :
     - Mode plein écran modal intégré au dashboard affichant le PDF à 100% de l'écran avec barre d'outils dédiée (Téléchargement, Envoi WhatsApp, Nouvel onglet permanent et Fermeture).
