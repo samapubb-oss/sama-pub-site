@@ -6,10 +6,70 @@ import {
   View,
   StyleSheet,
   Image,
+  Font,
 } from "@react-pdf/renderer";
 import type { DevisData } from "@/types/devis";
 import { formatFcfa, formatDateFr } from "@/lib/pdf-utils";
 import { SAMA_AGENCY_INFO } from "@/lib/devis-config";
+
+// URLs CDN ultra-stables pour polices TrueType
+const ROBOTO_REGULAR_URL =
+  "https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-Regular.ttf";
+const ROBOTO_MEDIUM_URL =
+  "https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-Medium.ttf";
+const ROBOTO_ITALIC_URL =
+  "https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-Italic.ttf";
+
+// Enregistrement explicite pour remplacer les polices standard pdfkit (résout l'erreur Helvetica.cjs sur Vercel)
+try {
+  let regularSrc: string = ROBOTO_REGULAR_URL;
+  let boldSrc: string = ROBOTO_MEDIUM_URL;
+  let italicSrc: string = ROBOTO_ITALIC_URL;
+
+  // Si exécuté côté serveur Node.js et que les fichiers locaux existent, utiliser Base64
+  if (typeof window === "undefined") {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const fs = require("fs");
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const path = require("path");
+      const regPath = path.join(process.cwd(), "public", "fonts", "Roboto-Regular.ttf");
+      const boldPath = path.join(process.cwd(), "public", "fonts", "Roboto-Medium.ttf");
+      const itaPath = path.join(process.cwd(), "public", "fonts", "Roboto-Italic.ttf");
+
+      if (fs.existsSync(regPath) && fs.existsSync(boldPath)) {
+        regularSrc = `data:font/truetype;base64,${fs.readFileSync(regPath).toString("base64")}`;
+        boldSrc = `data:font/truetype;base64,${fs.readFileSync(boldPath).toString("base64")}`;
+        italicSrc = fs.existsSync(itaPath)
+          ? `data:font/truetype;base64,${fs.readFileSync(itaPath).toString("base64")}`
+          : regularSrc;
+      }
+    } catch {
+      // Conserver les URLs CDN en fallback
+    }
+  }
+
+  Font.register({
+    family: "Helvetica",
+    fonts: [
+      { src: regularSrc, fontWeight: "normal" },
+      { src: boldSrc, fontWeight: "bold" },
+      { src: italicSrc, fontStyle: "italic" },
+    ],
+  });
+
+  Font.register({
+    family: "Helvetica-Bold",
+    src: boldSrc,
+  });
+
+  Font.register({
+    family: "Helvetica-Oblique",
+    src: italicSrc,
+  });
+} catch {
+  // Déjà enregistré
+}
 
 // Palette officielle SAMA PUB
 const COLORS = {
