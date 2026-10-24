@@ -506,7 +506,7 @@ interface DevisPdfDocumentProps {
 
 export const DevisPdfDocument: React.FC<DevisPdfDocumentProps> = ({
   devis,
-  logoUrl = "/images/logo-sp.png",
+  logoUrl = "",
 }) => {
   const dateEmission = formatDateFr(devis.date_generation);
   const numeroDevis = devis.numero_devis || "DEV-" + new Date().getFullYear() + "-0001";
@@ -518,15 +518,42 @@ export const DevisPdfDocument: React.FC<DevisPdfDocumentProps> = ({
   const tranche2 = devis.tranche_2_prestation || prestation - tranche1;
   const totalGeneral = metaBudget + prestation;
 
+  const hasValidLogo =
+    Boolean(logoUrl) &&
+    (logoUrl.startsWith("data:") ||
+      logoUrl.startsWith("http://") ||
+      logoUrl.startsWith("https://"));
+
   return (
     <Document title={`${devis.titre_devis || "Devis"} - SAMA PUB`} author="SAMA PUB Dakar">
       <Page size="A4" style={styles.page}>
         {/* 1. En-tête officiel */}
         <View style={styles.headerContainer}>
           <View style={styles.agencyBrand}>
-            {logoUrl && (
+            {hasValidLogo ? (
               // eslint-disable-next-line jsx-a11y/alt-text
               <Image src={logoUrl} style={styles.logoImage} />
+            ) : (
+              <View
+                style={[
+                  styles.logoImage,
+                  {
+                    backgroundColor: COLORS.navy,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  },
+                ]}
+              >
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontFamily: "Helvetica-Bold",
+                    color: COLORS.orange,
+                  }}
+                >
+                  SP
+                </Text>
+              </View>
             )}
             <View>
               <Text style={styles.agencyTitle}>

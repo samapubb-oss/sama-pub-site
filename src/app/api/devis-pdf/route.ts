@@ -2,13 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import React from "react";
 import path from "path";
 import fs from "fs";
-import { pdf } from "@react-pdf/renderer";
+import { renderToBuffer } from "@react-pdf/renderer";
 import { DevisPdfDocument } from "@/components/admin/DevisPdfDocument";
 import { generateDynamicDevisFromLead } from "@/lib/devis-generator";
 import { supabase } from "@/lib/supabase";
 import type { DevisData } from "@/types/devis";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 /**
  * Charge le logo officiel SAMA PUB au format Base64 pour un rendu immédiat et infaillible
@@ -63,17 +64,14 @@ export async function GET(req: NextRequest) {
     const origin = req.nextUrl.origin;
     const devis: DevisData = generateDynamicDevisFromLead(lead, origin);
 
-    // 3. Rendu du document PDF A4
+    // 3. Rendu du document PDF A4 via renderToBuffer officiel Node.js
     const logoDataUri = getLogoDataUri();
     const docInstance = React.createElement(DevisPdfDocument, {
       devis,
       logoUrl: logoDataUri,
     });
 
-    const pdfInstance = pdf(docInstance as any);
-    const blob = await pdfInstance.toBlob();
-    const arrayBuf = await blob.arrayBuffer();
-    const buffer = Buffer.from(arrayBuf);
+    const buffer = await renderToBuffer(docInstance as any);
 
     const clientSlug = (lead.company_name || lead.full_name || "client")
       .toLowerCase()
@@ -81,7 +79,7 @@ export async function GET(req: NextRequest) {
       .replace(/-+/g, "-");
     const filename = `Devis-SAMA-PUB-${devis.numero_devis || clientSlug}.pdf`;
 
-    return new NextResponse(buffer, {
+    return new NextResponse(buffer as any, {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
@@ -92,7 +90,10 @@ export async function GET(req: NextRequest) {
   } catch (err: any) {
     console.error("Erreur génération PDF dans /api/devis-pdf :", err);
     return NextResponse.json(
-      { error: "Impossible de générer le document PDF." },
+      {
+        error: "Impossible de générer le document PDF.",
+        details: err?.message || String(err),
+      },
       { status: 500 }
     );
   }
@@ -119,10 +120,7 @@ export async function POST(req: NextRequest) {
       logoUrl: logoDataUri,
     });
 
-    const pdfInstance = pdf(docInstance as any);
-    const blob = await pdfInstance.toBlob();
-    const arrayBuf = await blob.arrayBuffer();
-    const buffer = Buffer.from(arrayBuf);
+    const buffer = await renderToBuffer(docInstance as any);
 
     const clientSlug = (devis.client.entreprise || devis.client.nom || "client")
       .toLowerCase()
@@ -130,7 +128,7 @@ export async function POST(req: NextRequest) {
       .replace(/-+/g, "-");
     const filename = `Devis-SAMA-PUB-${devis.numero_devis || clientSlug}.pdf`;
 
-    return new NextResponse(buffer, {
+    return new NextResponse(buffer as any, {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
@@ -141,7 +139,10 @@ export async function POST(req: NextRequest) {
   } catch (err: any) {
     console.error("Erreur POST /api/devis-pdf :", err);
     return NextResponse.json(
-      { error: "Impossible de générer le document PDF." },
+      {
+        error: "Impossible de générer le document PDF.",
+        details: err?.message || String(err),
+      },
       { status: 500 }
     );
   }
