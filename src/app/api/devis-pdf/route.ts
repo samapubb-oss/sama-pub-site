@@ -11,6 +11,28 @@ import type { DevisData } from "@/types/devis";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
+// Inclusion forcée des fichiers .cjs via require() pour que Vercel NFT trace Helvetica.cjs
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  require("pdfkit/standard-fonts/Helvetica");
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  require("pdfkit/standard-fonts/HelveticaBold");
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  require("pdfkit/standard-fonts/HelveticaOblique");
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  require("pdfkit/standard-fonts/HelveticaBoldOblique");
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  require("pdfkit/standard-fonts/TimesRoman");
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  require("pdfkit/standard-fonts/TimesBold");
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  require("pdfkit/standard-fonts/Courier");
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  require("pdfkit/standard-fonts/CourierBold");
+} catch {
+  // Ignorer
+}
+
 /**
  * Charge le logo officiel SAMA PUB au format Base64 pour un rendu immédiat et infaillible
  */
