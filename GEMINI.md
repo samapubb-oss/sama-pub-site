@@ -212,6 +212,8 @@
     - Route serveur Next.js générant et diffusant directement le document PDF officiel haute fidélité (`Content-Type: application/pdf`).
     - Résout définitivement l'erreur Chromium `ERR_FILE_NOT_FOUND` liée à la révocation prématurée des URL `blob:`.
     - **Compatibilité Serveur Vercel (Node.js)** : Déclaration explicite de `runtime = 'nodejs'` et passage à `renderToBuffer()` officiel de `@react-pdf/renderer` pour un streaming PDF direct et ultra-rapide.
+    - **Inclusion Forcée des Polices Standard Vercel NFT** : Inclusion explicite via `require("pdfkit/standard-fonts/Helvetica")` dans `route.ts`, garantissant que le moteur de traçage de Vercel (`route.js.nft.json`) copie obligatoirement les fichiers `Helvetica.cjs` et leurs fragments de glyphes dans le bundle serveur Lambda `/var/task/node_modules/pdfkit/js/standard-fonts/`.
+    - **Polices Vectorielles TrueType Roboto Intégrées** : Migration du document vers la police TrueType officielle **Roboto** (Normal, Bold, Italic) intégrée en Base64/CDN via `Font.register`, garantissant un rendu typographique haute définition parfait sans dépendance fragile aux fichiers AFM.
     - **Sécurité Anti-Crash du Logo** : Validation stricte des protocoles d'image (`data:`, `http://`, `https://`) et repli automatique sur le monogramme vectoriel officiel **SP** en l'absence de chemin local valide, éliminant totalement les erreurs système Linux `ENOENT: no such file or directory, open '/images/logo-sp.png'`.
     - Permet au client de consulter et télécharger son devis officiel en 1 clic depuis WhatsApp via une URL HTTPS stable et permanente.
   - **Visionneuse Plein Écran Immersive Intégrée (`DevisPdfPreview.tsx`)** :
