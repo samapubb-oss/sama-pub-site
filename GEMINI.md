@@ -195,8 +195,20 @@
   - Grille détaillée équilibrée en 2 colonnes avec lignes dédiées **Date d'envoi** (colonne gauche) et **Heure d'envoi** (colonne droite).
   - Sélecteur de statut épuré (3 options : *À traiter*, *En cours*, *Devis envoyé*) modifiant la donnée en temps réel dans Supabase (`leads_quotes`).
   - Bloc descriptif du besoin prospect avec copie rapide en un clic.
+  - **Bouton d'action directe « Générer un devis »** (ou *« Voir le devis (PDF prêt) »*) avec icône d'étincelles orange ouvrant instantanément la modale et la proposition PDF.
   - Bouton d'action directe **Contacter sur WhatsApp** ouvrant la messagerie officielle pré-remplie avec le numéro au format international.
   - Bouton **Envoyer un e-mail** ouvrant le client mail avec objet et corps de message pré-rédigés.
+- **Générateur de Devis PDF Officiel & IA Commerciale (`/api/generer-devis`, `DevisPdfDocument.tsx`, `DevisPdfPreview.tsx`)** :
+  - Génération de documents PDF A4 haute fidélité (`@react-pdf/renderer`) aux normes graphiques SAMA PUB (Navy `#0B192C`, Orange `#FF6B00`, Vert réassurance `#166534`).
+  - **Modèle Commercial Strict SAMA PUB** :
+    - *Budget Publicitaire Meta (100% diffusion)* : Le budget mensuel client est entièrement alloué aux diffusions Meta Ads (Facebook & Instagram), versé à l'agence pour dépôt sur la plateforme, distinct des honoraires.
+    - *Prestation de l'Agence (15% exacts du budget Meta)* : Calcul strict et automatique de 15% du budget Meta.
+    - *Modalité de paiement échelonné en 2 tranches (50% / 50%)* : 50% au lancement et 50% restant au bout de 15 jours de campagne.
+    - *Mission & Déploiement Intelligent* : Remplacement des tableaux itemisés superflus par un cadre d'engagement de déploiement et placement intelligent du budget sur Meta (Ciblage chirurgical, annonces performantes, optimisation continue).
+    - *Clause de Liberté & Remboursement Garanti* : Possibilité d'arrêter la campagne à tout moment avec restitution immédiate et intégrale du budget pub Meta non dépensé.
+    - *Double espace de signature* : Encart officiel Direction SAMA PUB à gauche et espace d'approbation et signature client à droite.
+  - **100% Responsive Mobile** : Carte récapitulative mobile native, bouton « Ouvrir en plein écran » pour la visionneuse native smartphone et bouton « Télécharger le PDF ».
+  - Format calibré pour tenir rigoureusement sur **1 seule page A4**.
 - **Alias `/dashboard`** : Redirection automatique vers `/admin`.
 
 ### 13. Page Dédiée « Création de Site Internet » (`/creation-site-internet`)
@@ -288,10 +300,26 @@ sama pub site/
 │   │   ├── CustomSelect.tsx                  # Composant Select accessible et 100% responsive mobile
 │   │   ├── WhatsAppIcon.tsx                  # Icône SVG vectorielle officielle de WhatsApp (#25D366)
 │   │   ├── WhatsAppFloat.tsx                 # Bouton flottant permanent en bas d'écran
+│   │   ├── DevisPdfDocument.tsx              # Document PDF haute fidélité aux couleurs SAMA PUB (@react-pdf/renderer)
+│   │   ├── DevisPdfPreview.tsx               # Composant d'aperçu du PDF intégré dans le modal
 │   │   └── Footer.tsx                        # Pied de page avec marge basse mobile anti-collision
 │   │
 │   ├── lib/
+│   │   ├── devis-config.ts                   # Configuration unique : prompt système, grille tarifaire et coordonnées
+│   │   ├── devis-storage.ts                  # Persistance et mise en cache du devis par identifiant de lead
+│   │   ├── pdf-utils.ts                      # Formatage monétaire (espace normal sans \u202F), nommage et dates
+│   │   ├── whatsapp-utils.ts                 # Partage natif mobile (File) et solution de repli ordinateur avec consigne
 │   │   └── supabase.ts                       # Client Supabase typé avec clé anonyme et URL
+│   │
+│   ├── app/
+│   │   └── api/
+│   │       └── generer-devis/
+│   │           └── route.ts                  # Route serveur sécurisée POST Claude (validation, rate limit, recalcul)
+│   │
+│   ├── types/
+│   │   ├── devis.ts                          # Types stricts : DevisData, LigneDevis, ClientDevis
+│   │   ├── database.types.ts                 # Types TypeScript générés automatiquement depuis Supabase
+│   │   └── index.ts                          # Déclarations TypeScript (ServiceItem, MetricItem, etc.)
 │   │
 │   ├── data/
 │   │   ├── siteConfig.ts                     # Coordonnées globales, réseaux sociaux, liens de navigation
@@ -300,20 +328,13 @@ sama pub site/
 │   │       ├── about.ts                      # Valeurs, mission et piliers de l'agence
 │   │       └── faq.ts                        # Questions / réponses fréquentes et catégorisation
 │   │
-│   └── types/
-│       ├── database.types.ts                 # Types TypeScript générés automatiquement depuis Supabase
-│       └── index.ts                          # Déclarations TypeScript (ServiceItem, MetricItem, etc.)
+│   └── ...
 │
-├── scripts/
-│   └── sync_supabase.js                      # Script Node.js de synchronisation automatisée
-├── .env.local                                # Variables d'environnement Supabase (URL + clé publique)
+├── .env.example                              # Modèle de variables d'environnement (ANTHROPIC_API_KEY, ANTHROPIC_MODEL)
+├── .env.local                                # Variables d'environnement locales (strictement ignoré par Git)
 ├── .gitignore                                # Protection stricte contre l'envoi de secrets sur GitHub
 ├── GEMINI.md                                 # CE FICHIER : Guide de référence du projet
-├── next.config.js                            # Configuration Next.js (optimisation images, compression)
 ├── package.json                              # Scripts npm et dépendances du projet
-├── postcss.config.js                         # Configuration PostCSS pour Tailwind CSS
-├── supabase_sync.sql                         # Script SQL complet de synchronisation Supabase (PostgreSQL 17)
-├── tailwind.config.ts                        # Configuration Tailwind, palettes sama-*, animations
 └── tsconfig.json                             # Configuration TypeScript stricte
 ```
 

@@ -13,14 +13,17 @@ import {
   Check,
   Calendar,
   Clock,
+  Sparkles,
 } from "lucide-react";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import type { LeadQuote } from "./LeadsTable";
+import { getSavedDevis } from "@/lib/devis-storage";
 
 interface LeadDetailCardProps {
   lead: LeadQuote | null;
   onStatusChange: (leadId: string, newStatus: string) => Promise<void>;
   isUpdatingStatus?: boolean;
+  onGenerateDevis?: (lead: LeadQuote) => void;
 }
 
 const statusOptions = [
@@ -52,12 +55,14 @@ export const LeadDetailCard: React.FC<LeadDetailCardProps> = ({
   lead,
   onStatusChange,
   isUpdatingStatus = false,
+  onGenerateDevis,
 }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   if (!lead) return null;
 
   const dt = formatDateTime(lead.created_at);
+  const savedDevis = getSavedDevis(lead.id);
 
   const currentStatusObj =
     statusOptions.find(
@@ -179,7 +184,7 @@ export const LeadDetailCard: React.FC<LeadDetailCardProps> = ({
               <span>Entreprise</span>
             </div>
             <span className="font-bold sm:font-semibold text-slate-900 truncate">
-              {lead.company_name || "Diop & Co"}
+              {lead.company_name || "Particulier / Non renseignée"}
             </span>
           </div>
 
@@ -266,22 +271,47 @@ export const LeadDetailCard: React.FC<LeadDetailCardProps> = ({
         </p>
       </div>
 
-      {/* Action Buttons: Stack on Mobile, Inline on Desktop */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 pt-1">
+      {/* Action Buttons: Bouton Générer un devis bien visible + Actions WhatsApp & E-mail */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 pt-1 border-t border-slate-100">
+        {/* Bouton Générer le devis / Voir le devis */}
+        <button
+          type="button"
+          onClick={() => {
+            if (onGenerateDevis) {
+              onGenerateDevis(lead);
+            }
+          }}
+          className="inline-flex items-center justify-center gap-2 px-5 py-3 sm:py-2.5 rounded-xl bg-sama-orange hover:bg-sama-orange-hover text-white text-xs sm:text-sm font-bold shadow-md shadow-orange-500/20 transition-all cursor-pointer"
+        >
+          {savedDevis ? (
+            <>
+              <FileText className="w-4 h-4 text-white" />
+              <span>Voir le devis (PDF prêt)</span>
+            </>
+          ) : (
+            <>
+              <Sparkles className="w-4 h-4 text-white" />
+              <span>Générer un devis</span>
+            </>
+          )}
+        </button>
+
+        {/* Contacter sur WhatsApp */}
         <a
           href={whatsappUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 sm:py-2.5 rounded-xl bg-sama-orange hover:bg-sama-orange-hover text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+          className="inline-flex items-center justify-center gap-2 px-5 py-3 sm:py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
         >
-          <WhatsAppIcon className="w-4 h-4 text-white" />
+          <WhatsAppIcon className="w-4 h-4 text-slate-600" />
           <span>Contacter sur WhatsApp</span>
         </a>
 
+        {/* E-mail client */}
         {lead.email && (
           <a
             href={mailtoUrl}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 sm:py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
+            className="inline-flex items-center justify-center gap-2 px-5 py-3 sm:py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
           >
             <Mail className="w-4 h-4 text-slate-400" />
             <span>Envoyer un e-mail</span>

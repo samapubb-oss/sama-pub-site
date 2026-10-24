@@ -366,6 +366,11 @@ export default function AdminDashboardPage() {
                   lead={selectedLead}
                   onStatusChange={handleStatusChange}
                   isUpdatingStatus={isUpdatingStatus}
+                  onGenerateDevis={(lead) => {
+                    setInspectingLead(lead);
+                    setSelectedLeadId(lead.id);
+                    setIsInspectModalOpen(true);
+                  }}
                 />
               )}
             </>
