@@ -255,7 +255,7 @@ function generateDynamicDevisFromLead(body: DevisGenerationRequest): DevisData {
   // Analyse et contextualisation basée sur la description client
   const analysis = analyzeClientDescription(cleanDescription, clientName, serviceKey);
 
-  const messageWhatsapp = `Bonjour ${clientName}, l'agence SAMA PUB a préparé votre devis personnalisé pour ${analysis.titreDevis}. Budget pub Meta (100% alloué à vos annonces) : ${formattedMeta} FCFA. Prestation de l'agence (15%) : ${formattedPrestation} FCFA (payable au choix en 2 tranches de ${formattedTranche1} FCFA). Arrêt possible à tout moment avec remboursement garanti du budget pub non dépensé. Le devis officiel en PDF est joint ci-dessous !`;
+  const messageWhatsapp = `Bonjour ${clientName},\n\nL'agence SAMA PUB a préparé votre devis officiel pour votre projet (« ${analysis.titreDevis} »).\n\nLe document PDF officiel est joint à ce message.\n\nRestant à votre entière disposition pour échanger sur le lancement de votre campagne,\nL'équipe SAMA PUB Dakar`;
 
   const emailObjet = `SAMA PUB — Votre proposition de devis : ${analysis.titreDevis}`;
   const emailCorps = `Bonjour ${clientName},\n\nNous vous remercions pour votre intérêt envers SAMA PUB. Suite à l'étude de votre projet (« ${analysis.descriptionProjet} »), veuillez trouver ci-joint notre proposition commerciale détaillée.\n\nRestant à votre entière disposition,\nL'équipe SAMA PUB Dakar`;

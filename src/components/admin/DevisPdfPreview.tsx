@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { pdf } from "@react-pdf/renderer";
 import { DevisPdfDocument } from "./DevisPdfDocument";
 import type { DevisData } from "@/types/devis";
@@ -11,8 +11,9 @@ import {
   ExternalLink,
   Download,
   Eye,
-  CheckCircle2,
   ShieldCheck,
+  X,
+  Maximize2,
 } from "lucide-react";
 import { formatFcfa } from "@/lib/pdf-utils";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
@@ -29,12 +30,23 @@ export const DevisPdfPreview: React.FC<DevisPdfPreviewProps> = ({
   onSendWhatsApp,
 }) => {
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
+  const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
   const [isGenerating, setIsGenerating] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isFullscreenOpen, setIsFullscreenOpen] = useState(false);
+
+  const onBlobReadyRef = useRef(onBlobReady);
+  useEffect(() => {
+    onBlobReadyRef.current = onBlobReady;
+  }, [onBlobReady]);
+
+  // URL permanente sécurisée basée sur l'ID de la demande (résout définitivement ERR_FILE_NOT_FOUND)
+  const permanentPdfUrl = devis.id_demande
+    ? `/api/devis-pdf?id=${devis.id_demande}`
+    : null;
 
   useEffect(() => {
     let isCancelled = false;
-    let createdUrl: string | null = null;
 
     async function generatePdf() {
       setIsGenerating(true);
@@ -49,10 +61,12 @@ export const DevisPdfPreview: React.FC<DevisPdfPreviewProps> = ({
 
         if (isCancelled) return;
 
-        createdUrl = URL.createObjectURL(blob);
+        const createdUrl = URL.createObjectURL(blob);
+        setPdfBlob(blob);
         setBlobUrl(createdUrl);
-        if (onBlobReady) {
-          onBlobReady(blob, createdUrl);
+
+        if (onBlobReadyRef.current) {
+          onBlobReadyRef.current(blob, createdUrl);
         }
       } catch (err: any) {
         console.error("Erreur lors de la génération du Blob PDF :", err);
@@ -70,11 +84,9 @@ export const DevisPdfPreview: React.FC<DevisPdfPreviewProps> = ({
 
     return () => {
       isCancelled = true;
-      if (createdUrl) {
-        URL.revokeObjectURL(createdUrl);
-      }
+      // Ne pas révoquer agressivement le blob ici pour éviter ERR_FILE_NOT_FOUND
     };
-  }, [devis, onBlobReady]);
+  }, [devis]);
 
   if (isGenerating) {
     return (
@@ -109,6 +121,7 @@ export const DevisPdfPreview: React.FC<DevisPdfPreviewProps> = ({
   const tranche1 = devis.tranche_1_prestation || Math.round(prestation * 0.5);
   const tranche2 = devis.tranche_2_prestation || prestation - tranche1;
   const totalGeneral = metaBudget + prestation;
+  const effectivePdfViewUrl = permanentPdfUrl || blobUrl;
 
   return (
     <div className="w-full space-y-3">
@@ -123,7 +136,7 @@ export const DevisPdfPreview: React.FC<DevisPdfPreviewProps> = ({
               Devis officiel · {devis.numero_devis || "DEV-OFFICIEL"}
             </p>
             <p className="text-[11px] text-slate-300">
-              Prêt pour envoi WhatsApp ou ouverture plein écran
+              Prêt pour envoi WhatsApp ou lecture plein écran
             </p>
           </div>
         </div>
@@ -141,18 +154,20 @@ export const DevisPdfPreview: React.FC<DevisPdfPreviewProps> = ({
             </button>
           )}
 
-          <a
-            href={blobUrl}
-            target="_blank"
-            rel="noopener noreferrer"
+          {/* Bouton Plein Écran sécurisé (ouvre la visionneuse intégrée plein écran) */}
+          <button
+            type="button"
+            onClick={() => setIsFullscreenOpen(true)}
             className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-sama-orange hover:bg-sama-orange-hover text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
+            title="Ouvrir le devis en mode plein écran immersif"
           >
-            <Eye className="w-4 h-4 shrink-0" />
+            <Maximize2 className="w-4 h-4 shrink-0" />
             <span>Plein écran</span>
-          </a>
+          </button>
 
+          {/* Télécharger le PDF */}
           <a
-            href={blobUrl}
+            href={effectivePdfViewUrl}
             download={`Devis-SAMA-PUB-${devis.numero_devis || "officiel"}.pdf`}
             className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-white/20 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold transition-all cursor-pointer"
             title="Télécharger le PDF directement"
@@ -234,15 +249,14 @@ export const DevisPdfPreview: React.FC<DevisPdfPreviewProps> = ({
         )}
 
         {/* Bouton direct d'ouverture du document complet */}
-        <a
-          href={blobUrl}
-          target="_blank"
-          rel="noopener noreferrer"
+        <button
+          type="button"
+          onClick={() => setIsFullscreenOpen(true)}
           className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-colors cursor-pointer"
         >
           <ExternalLink className="w-4 h-4 text-slate-600" />
           <span>Consulter le document PDF A4 complet</span>
-        </a>
+        </button>
       </div>
 
       {/* Visionneuse Object A4 pour tablettes et grands écrans */}
@@ -264,18 +278,109 @@ export const DevisPdfPreview: React.FC<DevisPdfPreviewProps> = ({
                 Cliquez ci-dessous pour ouvrir le devis au format PDF.
               </p>
             </div>
-            <a
-              href={blobUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-sama-orange text-white text-xs font-bold shadow-xs hover:bg-sama-orange-hover transition-colors"
+            <button
+              type="button"
+              onClick={() => setIsFullscreenOpen(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-sama-orange text-white text-xs font-bold shadow-xs hover:bg-sama-orange-hover transition-colors cursor-pointer"
             >
-              <ExternalLink className="w-4 h-4" />
+              <Eye className="w-4 h-4" />
               <span>Ouvrir le devis PDF</span>
-            </a>
+            </button>
           </div>
         </object>
       </div>
+
+      {/* MODAL PLEIN ÉCRAN IMMERSIF (Évite définitivement les erreurs ERR_FILE_NOT_FOUND du navigateur) */}
+      {isFullscreenOpen && (
+        <div className="fixed inset-0 z-[100] bg-slate-950/85 backdrop-blur-md flex flex-col p-2 sm:p-4 animate-in fade-in duration-200">
+          {/* Header Plein Écran */}
+          <div className="bg-slate-900 text-white rounded-2xl p-3 sm:p-4 mb-2 flex items-center justify-between shadow-xl border border-slate-800">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-8 h-8 rounded-lg bg-sama-orange/20 border border-sama-orange/40 flex items-center justify-center shrink-0">
+                <FileText className="w-4 h-4 text-sama-orange" />
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-sm sm:text-base font-bold text-white truncate">
+                  Devis officiel · {devis.numero_devis || "SAMA PUB"}
+                </h3>
+                <p className="text-xs text-slate-400 truncate">
+                  Client : {devis.client?.nom} {devis.client?.entreprise ? `(${devis.client.entreprise})` : ""}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {onSendWhatsApp && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsFullscreenOpen(false);
+                    onSendWhatsApp();
+                  }}
+                  className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
+                >
+                  <WhatsAppIcon className="w-3.5 h-3.5 text-white" />
+                  <span>Envoyer WhatsApp</span>
+                </button>
+              )}
+
+              <a
+                href={effectivePdfViewUrl}
+                download={`Devis-SAMA-PUB-${devis.numero_devis || "officiel"}.pdf`}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold transition-colors cursor-pointer"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Télécharger</span>
+              </a>
+
+              {permanentPdfUrl && (
+                <a
+                  href={permanentPdfUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-700 hover:bg-slate-800 text-slate-300 text-xs font-semibold transition-colors"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>Nouvel onglet</span>
+                </a>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setIsFullscreenOpen(false)}
+                className="w-8 h-8 rounded-xl bg-slate-800 hover:bg-rose-600 hover:text-white text-slate-300 flex items-center justify-center transition-colors cursor-pointer ml-1"
+                title="Fermer le plein écran"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Corps Plein Écran */}
+          <div className="flex-1 w-full rounded-2xl overflow-hidden bg-slate-900 border border-slate-800 shadow-2xl relative">
+            <object
+              data={`${blobUrl}#toolbar=1&navpanes=0&scrollbar=1`}
+              type="application/pdf"
+              className="w-full h-full"
+            >
+              <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center text-white space-y-4">
+                <FileText className="w-12 h-12 text-sama-orange" />
+                <p className="text-sm font-semibold max-w-sm">
+                  Votre navigateur ne peut pas afficher directement le lecteur PDF intégré.
+                </p>
+                <a
+                  href={effectivePdfViewUrl}
+                  download={`Devis-SAMA-PUB-${devis.numero_devis || "officiel"}.pdf`}
+                  className="px-5 py-2.5 rounded-xl bg-sama-orange hover:bg-sama-orange-hover text-white text-xs font-bold transition-colors"
+                >
+                  Télécharger le document PDF
+                </a>
+              </div>
+            </object>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
+

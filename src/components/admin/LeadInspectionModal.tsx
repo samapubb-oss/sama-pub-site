@@ -243,12 +243,20 @@ export const LeadInspectionModal: React.FC<LeadInspectionModalProps> = ({
         devis.client?.whatsapp ||
         "";
 
+      const origin = typeof window !== "undefined" ? window.location.origin : "";
+      const pdfDirectUrl = lead.id ? `${origin}/api/devis-pdf?id=${lead.id}` : "";
+      const clientName = lead.full_name || devis.client?.nom || "Client";
+      const devisTitre = devis.titre_devis || "Campagne Publicitaire SAMA PUB";
+
+      // Message d'accompagnement WhatsApp officiel, élégant et orienté PDF
+      const messageToSend = `Bonjour ${clientName},\n\nL'agence SAMA PUB a le plaisir de vous transmettre votre devis officiel pour votre projet (« ${devisTitre} »).\n\n📄 Vous pouvez consulter et télécharger votre devis officiel (PDF) directement ici :\n${pdfDirectUrl}\n\nLe document PDF officiel est également joint à ce message.\n\nRestant à votre entière disposition pour échanger sur le lancement de votre campagne,\nL'équipe SAMA PUB Dakar`;
+
       const res = await sendDevisViaWhatsApp(
         pdfBlob,
         filename,
         targetPhone,
-        devis.message_whatsapp,
-        lead.full_name || devis.client?.nom || "Client"
+        messageToSend,
+        clientName
       );
 
       if (res.message) {

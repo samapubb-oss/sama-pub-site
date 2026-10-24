@@ -116,6 +116,6 @@ export async function sendDevisViaWhatsApp(
     success: true,
     waUrl,
     cleanPhone,
-    message: `Devis PDF téléchargé. Redirection vers la discussion WhatsApp avec ${targetName} (+${cleanPhone}).`,
+    message: `Devis PDF téléchargé sur votre appareil. Discussion WhatsApp ouverte avec ${targetName} (+${cleanPhone}) avec le lien direct vers le PDF. Joignez le PDF via le trombone 📎 et envoyez !`,
   };
 }
