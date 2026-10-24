@@ -50,22 +50,12 @@ try {
   }
 
   Font.register({
-    family: "Helvetica",
+    family: "Roboto",
     fonts: [
       { src: regularSrc, fontWeight: "normal" },
       { src: boldSrc, fontWeight: "bold" },
       { src: italicSrc, fontStyle: "italic" },
     ],
-  });
-
-  Font.register({
-    family: "Helvetica-Bold",
-    src: boldSrc,
-  });
-
-  Font.register({
-    family: "Helvetica-Oblique",
-    src: italicSrc,
   });
 } catch {
   // Déjà enregistré
@@ -101,7 +91,7 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
     paddingHorizontal: 28,
     fontSize: 8,
-    fontFamily: "Helvetica",
+    fontFamily: "Roboto",
     color: COLORS.slate900,
     backgroundColor: COLORS.white,
     lineHeight: 1.25,
@@ -128,7 +118,7 @@ const styles = StyleSheet.create({
   },
   agencyTitle: {
     fontSize: 15,
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "Roboto", fontWeight: "bold",
     color: COLORS.navy,
     letterSpacing: 0.5,
   },
@@ -157,7 +147,7 @@ const styles = StyleSheet.create({
   },
   devisTitle: {
     fontSize: 11,
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "Roboto", fontWeight: "bold",
     color: COLORS.white,
     letterSpacing: 1.2,
     textTransform: "uppercase",
@@ -174,7 +164,7 @@ const styles = StyleSheet.create({
   },
   devisNumber: {
     fontSize: 7.5,
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "Roboto", fontWeight: "bold",
     color: COLORS.orange,
     lineHeight: 1,
   },
@@ -208,7 +198,7 @@ const styles = StyleSheet.create({
   },
   cardHeader: {
     fontSize: 7,
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "Roboto", fontWeight: "bold",
     textTransform: "uppercase",
     letterSpacing: 0.8,
     marginBottom: 4,
@@ -236,7 +226,7 @@ const styles = StyleSheet.create({
   },
   cardValue: {
     fontSize: 7.5,
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "Roboto", fontWeight: "bold",
     color: COLORS.slate900,
   },
 
@@ -251,7 +241,7 @@ const styles = StyleSheet.create({
   },
   subjectTitle: {
     fontSize: 9,
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "Roboto", fontWeight: "bold",
     color: COLORS.navy,
   },
   subjectIntro: {
@@ -270,13 +260,13 @@ const styles = StyleSheet.create({
   },
   clientNeedLabel: {
     fontSize: 6.8,
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "Roboto", fontWeight: "bold",
     color: COLORS.orange,
     width: 95,
   },
   clientNeedText: {
     fontSize: 6.8,
-    fontFamily: "Helvetica-Oblique",
+    fontFamily: "Roboto", fontStyle: "italic",
     color: COLORS.slate800,
     width: 430,
     lineHeight: 1.25,
@@ -302,14 +292,14 @@ const styles = StyleSheet.create({
   },
   missionCardTitle: {
     fontSize: 7.5,
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "Roboto", fontWeight: "bold",
     color: COLORS.navy,
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
   missionCardBadge: {
     fontSize: 6.8,
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "Roboto", fontWeight: "bold",
     color: COLORS.orange,
     backgroundColor: COLORS.orangeLight,
     borderWidth: 1,
@@ -339,7 +329,7 @@ const styles = StyleSheet.create({
   },
   pillarTitle: {
     fontSize: 7,
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "Roboto", fontWeight: "bold",
     color: COLORS.navy,
     marginBottom: 2,
   },
@@ -366,7 +356,7 @@ const styles = StyleSheet.create({
   },
   financeHeaderText: {
     fontSize: 7,
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "Roboto", fontWeight: "bold",
     color: COLORS.slate700,
     textTransform: "uppercase",
     letterSpacing: 0.5,
@@ -395,7 +385,7 @@ const styles = StyleSheet.create({
   },
   financeMainLabel: {
     fontSize: 7.5,
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "Roboto", fontWeight: "bold",
     color: COLORS.slate900,
   },
   financeSubLabel: {
@@ -405,27 +395,27 @@ const styles = StyleSheet.create({
   },
   financeMainValue: {
     fontSize: 8,
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "Roboto", fontWeight: "bold",
     color: COLORS.slate900,
   },
   financePrestationLabel: {
     fontSize: 7.5,
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "Roboto", fontWeight: "bold",
     color: COLORS.orange,
   },
   financePrestationValue: {
     fontSize: 8.5,
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "Roboto", fontWeight: "bold",
     color: COLORS.orange,
   },
   financeTotalLabel: {
     fontSize: 8,
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "Roboto", fontWeight: "bold",
     color: COLORS.white,
   },
   financeTotalValue: {
     fontSize: 9.5,
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "Roboto", fontWeight: "bold",
     color: COLORS.orange,
   },
 
@@ -446,7 +436,7 @@ const styles = StyleSheet.create({
   },
   tranchesValues: {
     fontSize: 6.8,
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "Roboto", fontWeight: "bold",
     color: COLORS.slate800,
   },
 
@@ -466,7 +456,7 @@ const styles = StyleSheet.create({
   },
   freedomBadge: {
     fontSize: 7,
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "Roboto", fontWeight: "bold",
     color: COLORS.greenText,
     textTransform: "uppercase",
     letterSpacing: 0.5,
@@ -495,7 +485,7 @@ const styles = StyleSheet.create({
   },
   signatureBoxHeader: {
     fontSize: 7,
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "Roboto", fontWeight: "bold",
     color: COLORS.slate700,
     textTransform: "uppercase",
   },
@@ -512,12 +502,12 @@ const styles = StyleSheet.create({
   },
   agencyStampBadge: {
     fontSize: 7,
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "Roboto", fontWeight: "bold",
     color: COLORS.navy,
   },
   agencyStampStatus: {
     fontSize: 6.5,
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "Roboto", fontWeight: "bold",
     color: COLORS.orange,
     borderWidth: 1,
     borderColor: COLORS.orange,
@@ -554,7 +544,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   footerBold: {
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "Roboto", fontWeight: "bold",
     color: COLORS.slate700,
   },
 });
@@ -607,7 +597,7 @@ export const DevisPdfDocument: React.FC<DevisPdfDocumentProps> = ({
                 <Text
                   style={{
                     fontSize: 14,
-                    fontFamily: "Helvetica-Bold",
+                    fontFamily: "Roboto", fontWeight: "bold",
                     color: COLORS.orange,
                   }}
                 >
