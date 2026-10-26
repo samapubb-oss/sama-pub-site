@@ -4,7 +4,12 @@ import path from "path";
 import fs from "fs";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { DevisPdfDocument } from "@/components/admin/DevisPdfDocument";
-import { generateDynamicDevisFromLead } from "@/lib/devis-generator";
+import { WebsiteDevisPdfDocument } from "@/components/admin/website/WebsiteDevisPdfDocument";
+import {
+  generateDynamicDevisFromLead,
+  generateDynamicWebsiteDevis,
+} from "@/lib/devis-generator";
+import { isWebsiteLead } from "@/lib/website-lead-parser";
 import { supabase } from "@/lib/supabase";
 import type { DevisData } from "@/types/devis";
 
@@ -82,13 +87,20 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // 2. Génération de la structure de devis officielle
+    // 2. Détection du type de demande (Site web vs Publicité)
+    const { searchParams: params } = new URL(req.url);
+    const requestedType = params.get("type");
+    const isWeb = requestedType === "website" || isWebsiteLead(lead);
+
     const origin = req.nextUrl.origin;
-    const devis: DevisData = generateDynamicDevisFromLead(lead, origin);
+    const devis: DevisData = isWeb
+      ? generateDynamicWebsiteDevis(lead, origin)
+      : generateDynamicDevisFromLead(lead, origin);
 
     // 3. Rendu du document PDF A4 via renderToBuffer officiel Node.js
     const logoDataUri = getLogoDataUri();
-    const docInstance = React.createElement(DevisPdfDocument, {
+    const docComponent = isWeb ? WebsiteDevisPdfDocument : DevisPdfDocument;
+    const docInstance = React.createElement(docComponent, {
       devis,
       logoUrl: logoDataUri,
     });

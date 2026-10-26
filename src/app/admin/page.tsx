@@ -7,9 +7,13 @@ import { AdminStatsGrid } from "@/components/admin/AdminStatsGrid";
 import { LeadsTable, LeadQuote } from "@/components/admin/LeadsTable";
 import { LeadDetailCard } from "@/components/admin/LeadDetailCard";
 import { LeadInspectionModal } from "@/components/admin/LeadInspectionModal";
+import { WebsiteLeadsTable } from "@/components/admin/website/WebsiteLeadsTable";
+import { WebsiteAdminStatsGrid } from "@/components/admin/website/WebsiteAdminStatsGrid";
+import { WebsiteLeadInspectionModal } from "@/components/admin/website/WebsiteLeadInspectionModal";
+import { isWebsiteLead, parseWebsiteOrderDetails } from "@/lib/website-lead-parser";
 import { AdminLockScreen } from "@/components/admin/AdminLockScreen";
 import { supabase } from "@/lib/supabase";
-import { Phone, Mail, CheckCircle2, User } from "lucide-react";
+import { Phone, Mail, CheckCircle2, User, Globe } from "lucide-react";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import {
   registerServiceWorker,
@@ -30,6 +34,13 @@ export default function AdminDashboardPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+
+  // Website Quotes State
+  const [selectedWebsiteLeadId, setSelectedWebsiteLeadId] = useState<string | null>(null);
+  const [isWebsiteInspectModalOpen, setIsWebsiteInspectModalOpen] = useState(false);
+  const [inspectingWebsiteLead, setInspectingWebsiteLead] = useState<LeadQuote | null>(null);
+  const [websiteSearchTerm, setWebsiteSearchTerm] = useState("");
+  const [websiteStatusFilter, setWebsiteStatusFilter] = useState("all");
 
   // Check authentication on mount
   useEffect(() => {
@@ -158,9 +169,13 @@ export default function AdminDashboardPage() {
     }
   };
 
-  // Filtered Leads: classés rigoureusement par date et heure décroissante (plus récents en premier)
+  // Séparation étanche : Devis Publicité vs Devis Sites Web
+  const adsLeads = useMemo(() => leads.filter((l) => !isWebsiteLead(l)), [leads]);
+  const websiteLeads = useMemo(() => leads.filter((l) => isWebsiteLead(l)), [leads]);
+
+  // Filtered Leads Publicité: classés rigoureusement par date et heure décroissante
   const filteredLeads = useMemo(() => {
-    return leads
+    return adsLeads
       .filter((lead) => {
         const matchesSearch =
           lead.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -192,24 +207,70 @@ export default function AdminDashboardPage() {
       .sort((a, b) => {
         const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
         const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
-        return timeB - timeA; // Plus récent en tête de liste
+        return timeB - timeA;
       });
-  }, [leads, searchTerm, statusFilter]);
+  }, [adsLeads, searchTerm, statusFilter]);
 
-  // Selected lead object
+  // Filtered Leads Sites Web: classés rigoureusement par date et heure décroissante
+  const filteredWebsiteLeads = useMemo(() => {
+    return websiteLeads
+      .filter((lead) => {
+        const parsed = parseWebsiteOrderDetails(lead);
+        const matchesSearch =
+          lead.full_name.toLowerCase().includes(websiteSearchTerm.toLowerCase()) ||
+          (lead.company_name &&
+            lead.company_name.toLowerCase().includes(websiteSearchTerm.toLowerCase())) ||
+          (lead.email &&
+            lead.email.toLowerCase().includes(websiteSearchTerm.toLowerCase())) ||
+          parsed.formulaName.toLowerCase().includes(websiteSearchTerm.toLowerCase()) ||
+          parsed.typeLabel.toLowerCase().includes(websiteSearchTerm.toLowerCase());
+
+        const matchesStatus =
+          websiteStatusFilter === "all"
+            ? true
+            : websiteStatusFilter === "a_traiter" ||
+              websiteStatusFilter === "nouveau" ||
+              websiteStatusFilter === "contacted" ||
+              websiteStatusFilter === "new"
+            ? lead.status === "contacted" ||
+              lead.status === "a_traiter" ||
+              lead.status === "new" ||
+              lead.status === "nouveau"
+            : websiteStatusFilter === "en_cours" || websiteStatusFilter === "won"
+            ? lead.status === "won" || lead.status === "en_cours"
+            : websiteStatusFilter === "devis_envoye" || websiteStatusFilter === "quote_sent"
+            ? lead.status === "quote_sent" || lead.status === "devis_envoye"
+            : lead.status === websiteStatusFilter;
+
+        return matchesSearch && matchesStatus;
+      })
+      .sort((a, b) => {
+        const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return timeB - timeA;
+      });
+  }, [websiteLeads, websiteSearchTerm, websiteStatusFilter]);
+
+  // Selected lead object (Publicité)
   const selectedLead = useMemo(() => {
-    if (leads.length === 0) return null;
-    return leads.find((l) => l.id === selectedLeadId) || leads[0] || null;
-  }, [leads, selectedLeadId]);
+    if (adsLeads.length === 0) return null;
+    return adsLeads.find((l) => l.id === selectedLeadId) || adsLeads[0] || null;
+  }, [adsLeads, selectedLeadId]);
 
-  // Stats dynamically calculated from REAL Supabase leads
+  // Selected lead object (Sites Web)
+  const selectedWebsiteLead = useMemo(() => {
+    if (websiteLeads.length === 0) return null;
+    return websiteLeads.find((l) => l.id === selectedWebsiteLeadId) || websiteLeads[0] || null;
+  }, [websiteLeads, selectedWebsiteLeadId]);
+
+  // Stats Publicité (calculées strictement sur adsLeads)
   const stats = useMemo(() => {
-    const total = leads.length;
-    const pending = leads.filter(
+    const total = adsLeads.length;
+    const pending = adsLeads.filter(
       (l) => l.status === "new" || l.status === "nouveau" || l.status === "contacted" || l.status === "a_traiter"
     ).length;
-    const inProgress = leads.filter((l) => l.status === "won" || l.status === "en_cours").length;
-    const sent = leads.filter((l) => l.status === "quote_sent" || l.status === "devis_envoye").length;
+    const inProgress = adsLeads.filter((l) => l.status === "won" || l.status === "en_cours").length;
+    const sent = adsLeads.filter((l) => l.status === "quote_sent" || l.status === "devis_envoye").length;
 
     return {
       total,
@@ -217,16 +278,33 @@ export default function AdminDashboardPage() {
       inProgress,
       sent,
     };
-  }, [leads]);
+  }, [adsLeads]);
 
-  // Demandes en attente pour la modale et la cloche de notification
+  // Stats Sites Web (calculées strictement sur websiteLeads)
+  const websiteStats = useMemo(() => {
+    const total = websiteLeads.length;
+    const pending = websiteLeads.filter(
+      (l) => l.status === "new" || l.status === "nouveau" || l.status === "contacted" || l.status === "a_traiter"
+    ).length;
+    const inProgress = websiteLeads.filter((l) => l.status === "won" || l.status === "en_cours").length;
+    const sent = websiteLeads.filter((l) => l.status === "quote_sent" || l.status === "devis_envoye").length;
+
+    return {
+      total,
+      pending,
+      inProgress,
+      sent,
+    };
+  }, [websiteLeads]);
+
+  // Demandes en attente pour la cloche et le header
   const pendingLeads = useMemo(() => {
     return leads.filter(
       (l) => l.status === "new" || l.status === "nouveau" || l.status === "contacted" || l.status === "a_traiter"
     );
   }, [leads]);
 
-  // Export CSV Handler
+  // Export CSV Handler (Publicité)
   const handleExportCSV = () => {
     const headers = [
       "ID",
@@ -272,7 +350,69 @@ export default function AdminDashboardPage() {
     link.setAttribute("href", url);
     link.setAttribute(
       "download",
-      `sama-pub-devis-${new Date().toISOString().slice(0, 10)}.csv`
+      `sama-pub-devis-publicite-${new Date().toISOString().slice(0, 10)}.csv`
+    );
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Export CSV Handler (Sites Web)
+  const handleExportWebsiteCSV = () => {
+    const headers = [
+      "ID",
+      "Nom complet",
+      "Entreprise",
+      "WhatsApp",
+      "E-mail",
+      "Type de site",
+      "Formule",
+      "Tarif",
+      "Options",
+      "Délai",
+      "Statut",
+      "Date de création",
+      "Description projet",
+    ];
+
+    const rows = filteredWebsiteLeads.map((l) => {
+      const parsed = parseWebsiteOrderDetails(l);
+      return [
+        l.id,
+        `"${l.full_name.replace(/"/g, '""')}"`,
+        `"${(l.company_name || "").replace(/"/g, '""')}"`,
+        `"${(l.whatsapp_number || "").replace(/"/g, '""')}"`,
+        `"${(l.email || "").replace(/"/g, '""')}"`,
+        `"${parsed.typeLabel.replace(/"/g, '""')}"`,
+        `"${parsed.formulaName.replace(/"/g, '""')}"`,
+        `"${parsed.formattedPrice.replace(/"/g, '""')}"`,
+        `"${parsed.selectedFeatures.map((f) => f.label).join(", ").replace(/"/g, '""')}"`,
+        `"${parsed.deadlineLabel.replace(/"/g, '""')}"`,
+        l.status,
+        l.created_at
+          ? `"${new Date(l.created_at).toLocaleString("fr-FR", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            })}"`
+          : '""',
+        `"${parsed.cleanDescription.replace(/"/g, '""')}"`,
+      ];
+    });
+
+    const csvContent =
+      "\uFEFF" +
+      [headers.join(";"), ...rows.map((r) => r.join(";"))].join("\r\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute(
+      "download",
+      `sama-pub-devis-sites-web-${new Date().toISOString().slice(0, 10)}.csv`
     );
     document.body.appendChild(link);
     link.click();
@@ -304,6 +444,8 @@ export default function AdminDashboardPage() {
       <AdminSidebar
         currentTab={currentTab}
         setCurrentTab={setCurrentTab}
+        pendingCount={stats.pending}
+        pendingWebsiteCount={websiteStats.pending}
         isMobileOpen={isMobileMenuOpen}
         onCloseMobile={() => setIsMobileMenuOpen(false)}
       />
@@ -311,16 +453,27 @@ export default function AdminDashboardPage() {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
         <AdminHeader
-          unreadCount={stats.pending}
+          unreadCount={pendingLeads.length}
           pendingLeads={pendingLeads}
           onInspectLead={(lead) => {
-            setInspectingLead(lead);
-            setSelectedLeadId(lead.id);
-            setIsInspectModalOpen(true);
+            if (isWebsiteLead(lead)) {
+              setInspectingWebsiteLead(lead);
+              setSelectedWebsiteLeadId(lead.id);
+              setIsWebsiteInspectModalOpen(true);
+            } else {
+              setInspectingLead(lead);
+              setSelectedLeadId(lead.id);
+              setIsInspectModalOpen(true);
+            }
           }}
           onViewAllPending={() => {
-            setStatusFilter("a_traiter");
-            setSearchTerm("");
+            if (currentTab === "website_quotes") {
+              setWebsiteStatusFilter("a_traiter");
+              setWebsiteSearchTerm("");
+            } else {
+              setStatusFilter("a_traiter");
+              setSearchTerm("");
+            }
           }}
           onLogout={handleLogout}
           onMenuToggle={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -328,7 +481,7 @@ export default function AdminDashboardPage() {
 
         {/* Dashboard Body */}
         <main className="p-3 sm:p-6 lg:p-8 w-full max-w-[1440px] mx-auto space-y-4 sm:space-y-6">
-          {/* TAB 1: VUE D'ENSEMBLE OU DEMANDES DE DEVIS */}
+          {/* TAB 1: VUE D'ENSEMBLE OU DEMANDES DE DEVIS (PUBLICITÉ & MEDIA BUYING) */}
           {(currentTab === "overview" || currentTab === "quotes") && (
             <>
               {/* 1. 4 KPI Stat Cards */}
@@ -377,6 +530,66 @@ export default function AdminDashboardPage() {
             </>
           )}
 
+          {/* TAB 2: DEMANDES DE DEVIS SITES WEB (Spécifique configurateur 5 étapes) */}
+          {currentTab === "website_quotes" && (
+            <div className="space-y-4 sm:space-y-6">
+              {/* Header de section Dédié */}
+              <div className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-8 h-8 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center font-bold">
+                      <Globe className="w-4 h-4" />
+                    </span>
+                    <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
+                      Demandes de devis – Création de sites web
+                    </h2>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Commandes configurées via le formulaire en 5 étapes (Basique, Vitrine, E-commerce, Sur-Mesure)
+                  </p>
+                </div>
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-sky-50 text-sky-700 text-xs font-bold self-start sm:self-auto border border-sky-100">
+                  <Globe className="w-3.5 h-3.5" />
+                  <span>{websiteLeads.length} demande{websiteLeads.length > 1 ? "s" : ""} web</span>
+                </div>
+              </div>
+
+              {/* 1. 4 Cartes KPI Sites Web */}
+              <WebsiteAdminStatsGrid
+                totalLeads={websiteStats.total}
+                pendingCount={websiteStats.pending}
+                inProgressCount={websiteStats.inProgress}
+                sentCount={websiteStats.sent}
+                activeFilter={websiteStatusFilter}
+                onFilterChange={(newFilter) => {
+                  setWebsiteStatusFilter(newFilter);
+                  setWebsiteSearchTerm("");
+                }}
+              />
+
+              {/* 2. Tableau & Cartes Mobiles des Demandes de Sites Web */}
+              <WebsiteLeadsTable
+                leads={filteredWebsiteLeads}
+                selectedLeadId={selectedWebsiteLeadId}
+                onSelectLead={(lead) => {
+                  setSelectedWebsiteLeadId(lead.id);
+                  setInspectingWebsiteLead(lead);
+                  setIsWebsiteInspectModalOpen(true);
+                }}
+                onInspectLead={(lead) => {
+                  setInspectingWebsiteLead(lead);
+                  setSelectedWebsiteLeadId(lead.id);
+                  setIsWebsiteInspectModalOpen(true);
+                }}
+                searchTerm={websiteSearchTerm}
+                setSearchTerm={setWebsiteSearchTerm}
+                statusFilter={websiteStatusFilter}
+                setStatusFilter={setWebsiteStatusFilter}
+                onExportCSV={handleExportWebsiteCSV}
+              />
+            </div>
+          )}
+
           {/* TAB 3: CLIENTS */}
           {currentTab === "clients" && (
             <div className="space-y-6">
@@ -405,6 +618,7 @@ export default function AdminDashboardPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {leads.map((client) => {
                     const phoneClean = cleanWhatsappNumber(client.whatsapp_number || "");
+                    const isWebClient = isWebsiteLead(client);
                     return (
                       <div
                         key={client.id}
@@ -415,9 +629,21 @@ export default function AdminDashboardPage() {
                             <span className="text-xs font-bold text-sama-orange bg-[#FFF7ED] px-2.5 py-1 rounded-full">
                               {client.company_name || "Particulier"}
                             </span>
-                            <span className="text-[10px] text-slate-400">
-                              {new Date(client.created_at || "").toLocaleDateString("fr-FR")}
-                            </span>
+                            <div className="flex items-center gap-1.5">
+                              {isWebClient ? (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 text-sky-700 border border-sky-200">
+                                  <Globe className="w-2.5 h-2.5" />
+                                  <span>Site Web</span>
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-50 text-orange-700 border border-orange-200">
+                                  <span>Publicité</span>
+                                </span>
+                              )}
+                              <span className="text-[10px] text-slate-400">
+                                {new Date(client.created_at || "").toLocaleDateString("fr-FR")}
+                              </span>
+                            </div>
                           </div>
                           <h3 className="text-base font-bold text-slate-900">
                             {client.full_name}
@@ -457,9 +683,15 @@ export default function AdminDashboardPage() {
                           <button
                             type="button"
                             onClick={() => {
-                              setSelectedLeadId(client.id);
-                              setInspectingLead(client);
-                              setIsInspectModalOpen(true);
+                              if (isWebClient) {
+                                setSelectedWebsiteLeadId(client.id);
+                                setInspectingWebsiteLead(client);
+                                setIsWebsiteInspectModalOpen(true);
+                              } else {
+                                setSelectedLeadId(client.id);
+                                setInspectingLead(client);
+                                setIsInspectModalOpen(true);
+                              }
                             }}
                             className="py-2 px-3 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
                           >
@@ -617,11 +849,20 @@ export default function AdminDashboardPage() {
           )}
         </main>
 
-        {/* Detailed Client Inspection Modal (Opens on Eye icon click) */}
+        {/* Detailed Client Inspection Modal (Devis Publicité) */}
         <LeadInspectionModal
           lead={inspectingLead || selectedLead}
           isOpen={isInspectModalOpen}
           onClose={() => setIsInspectModalOpen(false)}
+          onStatusChange={handleStatusChange}
+          isUpdatingStatus={isUpdatingStatus}
+        />
+
+        {/* Detailed Client Inspection Modal (Devis Sites Web) */}
+        <WebsiteLeadInspectionModal
+          lead={inspectingWebsiteLead || selectedWebsiteLead}
+          isOpen={isWebsiteInspectModalOpen}
+          onClose={() => setIsWebsiteInspectModalOpen(false)}
           onStatusChange={handleStatusChange}
           isUpdatingStatus={isUpdatingStatus}
         />

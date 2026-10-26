@@ -5,6 +5,7 @@ import Link from "next/link";
 import {
   Home,
   FileText,
+  Globe,
   Users,
   Briefcase,
   Settings,
@@ -17,6 +18,7 @@ interface AdminSidebarProps {
   currentTab: string;
   setCurrentTab: (tab: string) => void;
   pendingCount?: number;
+  pendingWebsiteCount?: number;
   isMobileOpen?: boolean;
   onCloseMobile?: () => void;
 }
@@ -25,6 +27,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
   currentTab,
   setCurrentTab,
   pendingCount = 0,
+  pendingWebsiteCount = 0,
   isMobileOpen = false,
   onCloseMobile,
 }) => {
@@ -33,26 +36,39 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
       id: "overview",
       label: "Vue d'ensemble",
       icon: Home,
+      accent: "orange",
     },
     {
       id: "quotes",
       label: "Demandes de devis",
       icon: FileText,
+      badgeCount: pendingCount,
+      accent: "orange",
+    },
+    {
+      id: "website_quotes",
+      label: "Devis Sites Web",
+      icon: Globe,
+      badgeCount: pendingWebsiteCount,
+      accent: "sky",
     },
     {
       id: "clients",
       label: "Clients",
       icon: Users,
+      accent: "orange",
     },
     {
       id: "services",
       label: "Services",
       icon: Briefcase,
+      accent: "orange",
     },
     {
       id: "settings",
       label: "Paramètres",
       icon: Settings,
+      accent: "orange",
     },
   ];
 
@@ -112,6 +128,17 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
             {menuItems.map((item) => {
               const Icon = item.icon;
               const isActive = currentTab === item.id;
+              const isSky = item.accent === "sky";
+
+              const activeContainerClass = isSky
+                ? "text-sky-700 bg-sky-50 font-bold shadow-xs"
+                : "text-sama-orange bg-[#FFF7ED] font-bold shadow-xs";
+
+              const activeBarClass = isSky ? "bg-sky-600" : "bg-sama-orange";
+
+              const activeIconClass = isSky
+                ? "text-sky-600 stroke-[2.5]"
+                : "text-sama-orange stroke-[2.5]";
 
               return (
                 <button
@@ -121,25 +148,40 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                     setCurrentTab(item.id);
                     if (onCloseMobile) onCloseMobile();
                   }}
-                  className={`relative w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer text-left ${
+                  className={`relative w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer text-left min-h-[44px] ${
                     isActive
-                      ? "text-sama-orange bg-[#FFF7ED] font-bold shadow-xs"
+                      ? activeContainerClass
                       : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                   }`}
                 >
                   {/* Active Indicator Bar on the left */}
                   {isActive && (
-                    <span className="absolute left-0 top-2 bottom-2 w-1 bg-sama-orange rounded-r-md" />
+                    <span
+                      className={`absolute left-0 top-2 bottom-2 w-1 rounded-r-md ${activeBarClass}`}
+                    />
                   )}
 
                   <div className="flex items-center gap-3">
                     <Icon
                       className={`w-5 h-5 transition-colors ${
-                        isActive ? "text-sama-orange stroke-[2.5]" : "text-slate-400 stroke-[1.8]"
+                        isActive ? activeIconClass : "text-slate-400 stroke-[1.8]"
                       }`}
                     />
                     <span>{item.label}</span>
                   </div>
+
+                  {/* Badge Notification si demandes en attente */}
+                  {item.badgeCount !== undefined && item.badgeCount > 0 && (
+                    <span
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        isSky
+                          ? "bg-sky-600 text-white"
+                          : "bg-sama-orange text-white"
+                      }`}
+                    >
+                      {item.badgeCount}
+                    </span>
+                  )}
                 </button>
               );
             })}

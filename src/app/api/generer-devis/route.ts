@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { DEVIS_SYSTEM_PROMPT } from "@/lib/devis-config";
+import { WEBSITE_DEVIS_SYSTEM_PROMPT } from "@/lib/website-devis-prompt";
+import { generateDynamicWebsiteDevis } from "@/lib/devis-generator";
 import type { DevisData, DevisGenerationRequest } from "@/types/devis";
 
 // Limitation simple de fréquence en mémoire (10 requêtes par minute)
@@ -338,6 +340,15 @@ export async function POST(req: NextRequest) {
     const description = (body.description || "").slice(0, 3000);
     const metaBudget = extractBudgetAmount(body.budget_mensuel);
 
+    // Détection si la demande concerne un site web
+    const srvLower = (body.service || "").toLowerCase();
+    const isWebsiteOrder =
+      body.type_devis === "website" ||
+      srvLower.includes("site internet") ||
+      srvLower.includes("création de site") ||
+      srvLower.includes("creation de site") ||
+      Boolean(body.formule_site);
+
     // 4. Clé API Anthropic (si présente, appel à Claude ; sinon, générateur dynamique)
     const apiKey = process.env.ANTHROPIC_API_KEY?.trim();
     let finalizedDevis: DevisData;
@@ -352,7 +363,7 @@ export async function POST(req: NextRequest) {
             : rawModel;
 
         const payloadForClaude = {
-          id: body.id || "DEV-" + Date.now(),
+          id: body.id || (isWebsiteOrder ? "WEB-" : "DEV-") + Date.now(),
           nom_complet: body.nom_complet.slice(0, 100),
           entreprise: (body.entreprise || "").slice(0, 150),
           whatsapp: body.whatsapp.slice(0, 30),
@@ -362,12 +373,16 @@ export async function POST(req: NextRequest) {
           description: description,
           date_envoi: body.date_envoi || new Date().toISOString().slice(0, 10),
           heure_envoi: body.heure_envoi || "10:00",
+          type_devis: isWebsiteOrder ? "website" : "ads",
+          type_site: body.type_site || "",
+          formule_site: body.formule_site || "",
+          delai_site: body.delai_site || "",
         };
 
         const response = await anthropic.messages.create({
           model,
           max_tokens: 2500,
-          system: DEVIS_SYSTEM_PROMPT,
+          system: isWebsiteOrder ? WEBSITE_DEVIS_SYSTEM_PROMPT : DEVIS_SYSTEM_PROMPT,
           messages: [
             {
               role: "user",
@@ -379,16 +394,46 @@ export async function POST(req: NextRequest) {
         const textBlock = response.content.find((block) => block.type === "text");
         if (textBlock && textBlock.type === "text") {
           const parsed = parseClaudeJson(textBlock.text);
-          finalizedDevis = sanitizeAndRecalculateTotals(parsed, metaBudget, description);
+          if (isWebsiteOrder) {
+            // Recalcul strict des tranches pour les sites web (50% / 50%)
+            const totalHon = typeof parsed.total_honoraires === "number" && parsed.total_honoraires > 0
+              ? parsed.total_honoraires
+              : typeof parsed.total_general === "number" && parsed.total_general > 0
+              ? parsed.total_general
+              : 300000;
+            const tranche1 = Math.round(totalHon * 0.5);
+            const tranche2 = totalHon - tranche1;
+
+            finalizedDevis = {
+              ...parsed,
+              type_devis: "website",
+              type_site: body.type_site || parsed.type_site || "Site vitrine",
+              formule_site: body.formule_site || parsed.formule_site || "Site Vitrine",
+              delai_site: body.delai_site || parsed.delai_site || "Standard (10 à 14 jours)",
+              total_honoraires: totalHon,
+              budget_publicitaire_recommande: 0,
+              tranche_1_prestation: tranche1,
+              tranche_2_prestation: tranche2,
+              total_general: totalHon,
+            };
+          } else {
+            finalizedDevis = sanitizeAndRecalculateTotals(parsed, metaBudget, description);
+          }
         } else {
-          finalizedDevis = generateDynamicDevisFromLead(body);
+          finalizedDevis = isWebsiteOrder
+            ? generateDynamicWebsiteDevis(body)
+            : generateDynamicDevisFromLead(body);
         }
       } catch (anthropicErr) {
         console.warn("Appel API Anthropic en échec, bascule sur générateur dynamique :", anthropicErr);
-        finalizedDevis = generateDynamicDevisFromLead(body);
+        finalizedDevis = isWebsiteOrder
+          ? generateDynamicWebsiteDevis(body)
+          : generateDynamicDevisFromLead(body);
       }
     } else {
-      finalizedDevis = generateDynamicDevisFromLead(body);
+      finalizedDevis = isWebsiteOrder
+        ? generateDynamicWebsiteDevis(body)
+        : generateDynamicDevisFromLead(body);
     }
 
     // Métadonnées du devis
@@ -396,8 +441,13 @@ export async function POST(req: NextRequest) {
     const shortId = cleanId ? cleanId.slice(0, 8) : Date.now().toString().slice(-6);
     const currentYear = new Date().getFullYear();
     finalizedDevis.id_demande = body.id;
-    finalizedDevis.numero_devis = `DEV-${currentYear}-${shortId}`;
+    finalizedDevis.numero_devis = isWebsiteOrder
+      ? `WEB-${currentYear}-${shortId}`
+      : `DEV-${currentYear}-${shortId}`;
     finalizedDevis.date_generation = new Date().toISOString();
+    if (isWebsiteOrder) {
+      finalizedDevis.type_devis = "website";
+    }
 
     return NextResponse.json(finalizedDevis, { status: 200 });
   } catch (error: any) {

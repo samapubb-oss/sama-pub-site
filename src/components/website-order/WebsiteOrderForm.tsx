@@ -268,7 +268,22 @@ export const WebsiteOrderForm: React.FC = () => {
         .map((f) => websiteFeatures.find((feat) => feat.id === f)?.label)
         .filter(Boolean)
         .join(", ");
-      const fullMessage = `${clientInfo.projectDescription || ""}\n\n[Détails devis : Réf ${refNum} | Type: ${typeLabel} | Formule: ${selectedFormula.name} | Options: ${featuresLabel} | Délai: ${selectedDeadlineObj?.label || "Standard"}]`;
+      
+      const structuredData = {
+        ref: refNum,
+        typeId: selectedType,
+        typeLabel: typeLabel,
+        formulaId: selectedFormula.id,
+        formulaName: selectedFormula.name,
+        priceFCFA: selectedFormula.priceFCFA,
+        formattedPrice: selectedFormula.formattedPrice,
+        features: selectedFeatures,
+        deadlineId: clientInfo.deadline,
+        deadlineLabel: selectedDeadlineObj?.label || "Standard (10 à 14 jours)",
+        description: clientInfo.projectDescription || "",
+      };
+
+      const fullMessage = `${clientInfo.projectDescription || ""}\n\n[Détails devis : Réf ${refNum} | Type: ${typeLabel} | Formule: ${selectedFormula.name} | Options: ${featuresLabel} | Délai: ${selectedDeadlineObj?.label || "Standard"}]\n<!--WEBSITE_ORDER_DATA:${JSON.stringify(structuredData)}-->`;
 
       await supabase.from("leads_quotes").insert({
         full_name: clientInfo.fullName,

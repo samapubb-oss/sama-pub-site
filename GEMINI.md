@@ -220,7 +220,29 @@
     - Mode plein écran modal intégré au dashboard affichant le PDF à 100% de l'écran avec barre d'outils dédiée (Téléchargement, Envoi WhatsApp, Nouvel onglet permanent et Fermeture).
   - **Transmission WhatsApp Officielle & Élégante** :
     - Remplacement du long texte brut par un message d'accompagnement exécutif officiel avec lien direct vers le document PDF.
-    - Téléchargement automatique du fichier `.pdf` sur l'appareil pour permettre la transmission directe du document via la pièce jointe WhatsApp.
+- **Section Dédiée « Devis Sites Web » (`website_quotes`, `WebsiteLeadsTable.tsx`, `WebsiteLeadInspectionModal.tsx`, `WebsiteDevisPdfDocument.tsx`, `WebsiteAdminStatsGrid.tsx`)** :
+  - **Séparation Étanche & Onglet Dédié dans la Barre Latérale** : Nouvel onglet avec icône Globe (`Globe`) et accentuation visuelle cyan/bleu ciel (`#0284C7`), séparant strictement les demandes de création de site internet des devis publicitaires. Pastille de notification indiquant en direct les demandes de sites web en attente.
+  - **Page Liste Haute Visibilité (`WebsiteLeadsTable.tsx`)** :
+    - Données classées de la plus récente à la plus ancienne.
+    - Badges distincts : Badge pastel "Site Web" avec icône Globe, badge thématique de formule (Basique, Vitrine, Premium E-commerce, Sur-Mesure) avec tarif en FCFA en gras, type de site demandé (vitrine, e-commerce, immo, etc.), délai souhaité et statut interactif (*À traiter*, *En cours*, *Devis envoyé*).
+    - Barre de recherche instantanée (filtrage par client, entreprise, formule ou type) et filtre synchronisé par statut.
+    - Bouton Export CSV spécifique aux sites web avec colonnes détaillées (Type de site, Formule, Tarif, Options sélectionnées, Délai, Statut, Date et Description).
+    - **Conception 100% Mobile-First** : Sur mobile (< 768px), le tableau se transforme en cartes empilées élégantes et aérées, sans aucun défilement horizontal. Tous les boutons tactiles font au moins 44px de hauteur.
+  - **Page & Modale Détail en 5 Étapes (`WebsiteLeadInspectionModal.tsx`)** :
+    - Restitution claire et fidèle de l'intégralité des 5 étapes renseignées par le client dans le configurateur :
+      1. *Étape 1 · Type de projet web* (Type, usage et spécificités).
+      2. *Étape 2 · Formule choisie* (Nom de la formule avec son tarif officiel en FCFA et inclusions).
+      3. *Étape 3 · Options & Fonctionnalités cochées* (Badges verts des options sélectionnées : paiement Wave/OM, WhatsApp direct, formulaire, etc.).
+      4. *Étape 4 · Délai souhaité* (Délai contractuel sélectionné).
+      5. *Étape 5 · Coordonnées complètes du client* (Nom, Entreprise, WhatsApp avec indicatif +221, E-mail) + Description libre rédigée par le prospect avec copie 1 clic.
+    - Sélecteur de statut interactif synchronisé en direct avec Supabase (`leads_quotes`).
+    - Boutons d'action rapide : Contacter sur WhatsApp (message pré-rempli sur-mesure) et Envoyer un e-mail.
+    - **Bouton « Générer le devis » & IA Commerciale Claude Spécialisée Web** :
+      - Appel à l'API serveur `/api/generer-devis` avec le prompt système dédié `WEBSITE_DEVIS_SYSTEM_PROMPT`.
+      - Application stricte des règles commerciales web SAMA PUB : formule forfaitaire, modalités d'acompte échelonné (50% au démarrage, 50% à la livraison et mise en ligne), inclusions offertes la 1ère année (nom de domaine .sn ou .com, hébergement cloud SSL sécurisé, design Mobile-First, formation 1h).
+      - Rendu PDF haute fidélité aux normes graphiques SAMA PUB (`WebsiteDevisPdfDocument.tsx`).
+      - Téléchargement direct du PDF identique à l'aperçu et transmission WhatsApp en 1 clic.
+      - **Passage Automatique du Statut à « Devis envoyé »** (`quote_sent`) dès la transmission du devis au client via WhatsApp.
 - **Alias `/dashboard`** : Redirection automatique vers `/admin`.
 
 ### 13. Page Dédiée « Création de Site Internet » (`/creation-site-internet`)
@@ -488,6 +510,12 @@ Lorsque vous intervenez sur ce projet, suivez **scrupuleusement** les règles ci
   - Déclenche la notification push système sur le téléphone (`showNotification`).
 - **Synchronisation Temps Réel Supabase & Polling de secours** ([`src/app/admin/page.tsx`](file:///c:/Users/360IQ/Documents/sama%20pu%20site/src/app/admin/page.tsx)) :
   - Écoute les `INSERT` sur la table `leads_quotes` via WebSocket Supabase Realtime.
-  - Polling de secours toutes les 25 secondes garantissant la réception même si le smartphone met en veille la connexion WebSocket en arrière-plan.
+- **Correction du Chevauchement PDF & Optimisation Mobile Haute Précision** :
+  - **En-tête PDF (Zéro Chevauchement)** ([`WebsiteDevisPdfDocument.tsx`](file:///c:/Users/360IQ/Documents/sama%20pu%20site/src/components/admin/website/WebsiteDevisPdfDocument.tsx) & [`DevisPdfDocument.tsx`](file:///c:/Users/360IQ/Documents/sama%20pu%20site/src/components/admin/DevisPdfDocument.tsx)) : Séparation du nom d'agence et du slogan dans des conteneurs dédiés (`brandTextCol` et `brandTitleRow`) avec `flexDirection: "row"`, `alignItems: "baseline"`, marge inférieure explicite de 4 points (`marginBottom: 4`) et hauteur de ligne normalisée (`lineHeight: 1.2`). Élimine tout écrasement ou superposition de texte entre « SAMA PUB » et « AGENCE DE CRÉATION DIGITALE & PERFORMANCE · DAKAR » généré par le moteur de rendu Yoga.
+  - **Ergonomie Mobile & Lisibilité du Devis** ([`WebsiteLeadInspectionModal.tsx`](file:///c:/Users/360IQ/Documents/sama%20pu%20site/src/components/admin/website/WebsiteLeadInspectionModal.tsx)) :
+    - *Numéro de devis insécable* : Le badge `#WEB-2026-XXXXXXXX` est doté de `whitespace-nowrap shrink-0` et placé sur sa propre ligne d'en-tête avec badge de statut « Prêt à envoyer », empêchant tout retour à la ligne ou écrasement vertical sur petit écran mobile (360px).
+    - *Hiérarchie des titres* : Titre du projet sur sa propre ligne avec `leading-snug break-words`, lisible naturellement sans télescopage avec le badge.
+    - *Boutons d'action tactiles* : Disposition en grille optimisée sur mobile (`grid grid-cols-1 sm:flex`), avec bouton « Envoyer au client (WhatsApp) » pleine largeur en haut et boutons « Télécharger PDF » + « Régénérer » côte à côte en bas, tous calibrés à `min-h-[44px]`.
+    - *En-tête & Onglets compacts* : Nom du client tronqué proprement (`max-w-[120px] sm:max-w-none`), statut compact et onglets répartis équitablement (`flex-1`) pour une navigation sans débordement.
 
 ### 9. avant de pousser quelque chose sur github demande moi l'autorisation 

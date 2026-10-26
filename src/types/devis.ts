@@ -38,6 +38,11 @@ export interface DevisData {
   id_demande?: string;
   numero_devis?: string;
   date_generation?: string;
+  type_devis?: "ads" | "website";
+  type_site?: string;
+  formule_site?: string;
+  options_site?: string[];
+  delai_site?: string;
 }
 
 export interface DevisGenerationRequest {
@@ -51,4 +56,9 @@ export interface DevisGenerationRequest {
   description: string;
   date_envoi: string;
   heure_envoi: string;
+  type_devis?: "ads" | "website";
+  type_site?: string;
+  formule_site?: string;
+  options_site?: string[];
+  delai_site?: string;
 }

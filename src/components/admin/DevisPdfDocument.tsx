@@ -116,19 +116,35 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginRight: 10,
   },
-  agencyTitle: {
+  agencyBrandCol: {
+    flexDirection: "column",
+    justifyContent: "center",
+  },
+  agencyTitleRow: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    marginBottom: 4,
+  },
+  agencyTitleNavy: {
     fontSize: 15,
-    fontFamily: "Roboto", fontWeight: "bold",
+    lineHeight: 1.2,
+    fontFamily: "Roboto",
+    fontWeight: "bold",
     color: COLORS.navy,
     letterSpacing: 0.5,
   },
-  agencyOrangeText: {
+  agencyTitleOrange: {
+    fontSize: 15,
+    lineHeight: 1.2,
+    fontFamily: "Roboto",
+    fontWeight: "bold",
     color: COLORS.orange,
+    letterSpacing: 0.5,
   },
   agencyBaseline: {
     fontSize: 7,
+    lineHeight: 1.2,
     color: COLORS.slate500,
-    marginTop: 2,
     textTransform: "uppercase",
     letterSpacing: 0.6,
   },
@@ -605,10 +621,11 @@ export const DevisPdfDocument: React.FC<DevisPdfDocumentProps> = ({
                 </Text>
               </View>
             )}
-            <View>
-              <Text style={styles.agencyTitle}>
-                SAMA <Text style={styles.agencyOrangeText}>PUB</Text>
-              </Text>
+            <View style={styles.agencyBrandCol}>
+              <View style={styles.agencyTitleRow}>
+                <Text style={styles.agencyTitleNavy}>SAMA </Text>
+                <Text style={styles.agencyTitleOrange}>PUB</Text>
+              </View>
               <Text style={styles.agencyBaseline}>{SAMA_AGENCY_INFO.slogan}</Text>
             </View>
           </View>
