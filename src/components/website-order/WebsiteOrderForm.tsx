@@ -24,25 +24,19 @@ import {
   ShieldCheck,
   Check,
   AlertCircle,
-  HelpCircle,
   Send,
   Zap,
-  RotateCcw,
-  ExternalLink,
   TrendingUp,
   Calendar,
   Award,
-  ChevronDown,
+  Loader2,
 } from "lucide-react";
 import { siteConfig } from "@/data/siteConfig";
 import { SenegalFlag } from "@/components/SenegalFlag";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
-import { trackMetaPixelEvent } from "@/components/MetaPixel";
-import { supabase } from "@/lib/supabase";
 import {
   websiteFormulas,
   websiteTypes,
-  websiteFeatures,
   projectDeadlines,
   WebsiteFormula,
 } from "@/data/websitePricingConfig";
@@ -50,7 +44,7 @@ import {
 export const WebsiteOrderForm: React.FC = () => {
   const formTopRef = useRef<HTMLDivElement>(null);
 
-  // 5 Étapes Claires : 1 (Type), 2 (Formule), 3 (Options), 4 (Délais dédié), 5 (Coordonnées finales)
+  // 4 Étapes Claires : 1 (Type), 2 (Formule), 3 (Délai de réalisation), 4 (Coordonnées finales)
   const [currentStep, setCurrentStep] = useState<number>(1);
 
   // Selection states
@@ -58,13 +52,6 @@ export const WebsiteOrderForm: React.FC = () => {
   const [otherTypeDetail, setOtherTypeDetail] = useState<string>("");
 
   const [selectedFormulaId, setSelectedFormulaId] = useState<string>("vitrine");
-
-  const [selectedFeatures, setSelectedFeatures] = useState<string[]>([
-    "bouton-whatsapp",
-    "formulaire-contact",
-  ]);
-
-  const [isOptionsDetailOpen, setIsOptionsDetailOpen] = useState<boolean>(false);
 
   const [clientInfo, setClientInfo] = useState({
     fullName: "",
@@ -76,8 +63,8 @@ export const WebsiteOrderForm: React.FC = () => {
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
-  const [generatedQuoteRef, setGeneratedQuoteRef] = useState<string>("");
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   // Smooth scroll to form top helper
   const scrollToFormTop = () => {
@@ -145,7 +132,7 @@ export const WebsiteOrderForm: React.FC = () => {
     }, 220);
   };
 
-  // AUTO-ADVANCE Step 2: Click on formula selects it and immediately transitions to Step 3!
+  // AUTO-ADVANCE Step 2: Click on formula selects it and immediately transitions to Step 3 (Délai)!
   const handleSelectFormula = (formulaId: string) => {
     setSelectedFormulaId(formulaId);
     setErrors({});
@@ -155,21 +142,12 @@ export const WebsiteOrderForm: React.FC = () => {
     }, 220);
   };
 
-  // Toggle multi-select feature in Step 3
-  const toggleFeature = (featureId: string) => {
-    setSelectedFeatures((prev) =>
-      prev.includes(featureId)
-        ? prev.filter((id) => id !== featureId)
-        : [...prev, featureId]
-    );
-  };
-
-  // AUTO-ADVANCE Step 4: Click on delivery deadline selects it and auto-advances to final Step 5!
+  // AUTO-ADVANCE Step 3: Click on delivery deadline selects it and auto-advances to final Step 4 (Coordonnées)!
   const handleSelectDeadline = (deadlineId: string) => {
     setClientInfo((prev) => ({ ...prev, deadline: deadlineId }));
     setErrors({});
     setTimeout(() => {
-      setCurrentStep(5);
+      setCurrentStep(4);
       scrollToFormTop();
     }, 220);
   };
@@ -189,8 +167,8 @@ export const WebsiteOrderForm: React.FC = () => {
     }
   };
 
-  // Validation before step 5 (final contact registration form)
-  const validateStep5 = (): boolean => {
+  // Validation before step 4 (final contact registration form)
+  const validateStep4 = (): boolean => {
     const newErrors: Record<string, string> = {};
 
     if (!clientInfo.fullName.trim() || clientInfo.fullName.trim().length < 2) {
@@ -231,7 +209,7 @@ export const WebsiteOrderForm: React.FC = () => {
       return;
     }
     setErrors({});
-    if (currentStep < 5) {
+    if (currentStep < 4) {
       setCurrentStep((prev) => prev + 1);
       scrollToFormTop();
     }
@@ -247,69 +225,61 @@ export const WebsiteOrderForm: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateStep5()) {
+    if (!validateStep4()) {
       return;
     }
 
-    const refNum = `WEB-${Math.floor(1000 + Math.random() * 9000)}`;
-    setGeneratedQuoteRef(refNum);
-    setIsSubmitted(true);
-    trackMetaPixelEvent("Lead", {
-      content_name: "Création Site Internet",
-      formula: selectedFormula.name,
-      value: selectedFormula.priceFCFA,
-      currency: "XOF",
-    });
+    setIsSubmitting(true);
+    setSubmitError(null);
 
-    // Enregistrement dans Supabase pour notifier immédiatement le dashboard & smartphone du dirigeant
     try {
-      const typeLabel = selectedType === "autre" ? otherTypeDetail : selectedTypeObj?.title || selectedType;
-      const featuresLabel = selectedFeatures
-        .map((f) => websiteFeatures.find((feat) => feat.id === f)?.label)
-        .filter(Boolean)
-        .join(", ");
-      
-      const structuredData = {
-        ref: refNum,
-        typeId: selectedType,
-        typeLabel: typeLabel,
-        formulaId: selectedFormula.id,
-        formulaName: selectedFormula.name,
-        priceFCFA: selectedFormula.priceFCFA,
-        formattedPrice: selectedFormula.formattedPrice,
-        features: selectedFeatures,
-        deadlineId: clientInfo.deadline,
-        deadlineLabel: selectedDeadlineObj?.label || "Standard (10 à 14 jours)",
-        description: clientInfo.projectDescription || "",
-      };
-
-      const fullMessage = `${clientInfo.projectDescription || ""}\n\n[Détails devis : Réf ${refNum} | Type: ${typeLabel} | Formule: ${selectedFormula.name} | Options: ${featuresLabel} | Délai: ${selectedDeadlineObj?.label || "Standard"}]\n<!--WEBSITE_ORDER_DATA:${JSON.stringify(structuredData)}-->`;
-
-      await supabase.from("leads_quotes").insert({
-        full_name: clientInfo.fullName,
-        company_name: clientInfo.companyName,
-        whatsapp_number: `+221 ${clientInfo.whatsappNumber}`,
-        email: clientInfo.email,
-        service_requested: `Création de site internet (${selectedFormula.name})`,
-        budget_range: selectedFormula.formattedPrice,
-        message: fullMessage,
-        contact_channel: "website_order",
-        contact_value: `+221 ${clientInfo.whatsappNumber}`,
-        status: "new",
+      const response = await fetch("/api/devis-site-web", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fullName: clientInfo.fullName,
+          companyName: clientInfo.companyName,
+          whatsappNumber: clientInfo.whatsappNumber,
+          email: clientInfo.email,
+          deadline: clientInfo.deadline,
+          projectDescription: clientInfo.projectDescription,
+          selectedType,
+          otherTypeDetail,
+          selectedFormulaId,
+          selectedFeatures: [],
+        }),
       });
-    } catch (dbErr) {
-      console.warn("Notice insertion leads_quotes:", dbErr);
-    }
 
-    scrollToFormTop();
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok || !data.success || !data.ref) {
+        throw new Error(
+          data.error || "Une erreur est survenue lors de l'enregistrement de votre devis."
+        );
+      }
+
+      // Redirection COMPLÈTE de la page vers /merci-devis-site-web?ref=NUMERO_DU_DEVIS
+      // Rechargement complet de la page (pas router.push) pour chargement propre du Pixel Meta
+      window.location.assign(`/merci-devis-site-web?ref=${encodeURIComponent(data.ref)}`);
+    } catch (err: any) {
+      console.error("Erreur soumission devis web:", err);
+      setSubmitError(
+        err.message ||
+          "Une erreur est survenue. Veuillez vérifier votre connexion et réessayer."
+      );
+      setIsSubmitting(false);
+      scrollToFormTop();
+    }
   };
 
   const resetForm = () => {
     setCurrentStep(1);
-    setIsSubmitted(false);
+    setIsSubmitting(false);
+    setSubmitError(null);
     setSelectedType("vitrine");
     setSelectedFormulaId("vitrine");
-    setSelectedFeatures(["bouton-whatsapp", "formulaire-contact"]);
     setOtherTypeDetail("");
     setClientInfo({
       fullName: "",
@@ -369,20 +339,6 @@ export const WebsiteOrderForm: React.FC = () => {
         return <Layout className={className} />;
     }
   };
-
-  // WhatsApp prefilled summary text
-  const whatsappSummaryText = encodeURIComponent(
-    `Bonjour SAMA PUB, je souhaite un devis pour la création de mon site internet :\n` +
-      `• Réf Dossier : ${generatedQuoteRef || "WEB-DEVIS"}\n` +
-      `• Nom : ${clientInfo.fullName}\n` +
-      `• Entreprise : ${clientInfo.companyName}\n` +
-      `• Type : ${selectedType === "autre" ? otherTypeDetail : selectedTypeObj?.title}\n` +
-      `• Formule : ${selectedFormula.name} (${selectedFormula.formattedPrice})\n` +
-      `• Options (${selectedFeatures.length}) : ${selectedFeatures.map((f) => websiteFeatures.find((feat) => feat.id === f)?.label).join(", ")}\n` +
-      `• Délai souhaité : ${selectedDeadlineObj?.label}\n` +
-      `• E-mail : ${clientInfo.email}\n` +
-      `• Détails : ${clientInfo.projectDescription}`
-  );
 
   return (
     <div ref={formTopRef} className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-8 lg:py-12">
@@ -502,7 +458,7 @@ export const WebsiteOrderForm: React.FC = () => {
                 <span>Devis en direct</span>
               </span>
               <span className="text-[10px] text-sama-orange font-bold font-mono bg-orange-50 px-2 py-0.5 rounded-full border border-orange-100">
-                Étape {currentStep} / 5
+                Étape {currentStep} / 4
               </span>
             </div>
 
@@ -534,81 +490,17 @@ export const WebsiteOrderForm: React.FC = () => {
                   {selectedDeadlineObj?.label}
                 </span>
               </div>
-
-              {/* Ligne Options Cliquable & Interactive */}
-              <div
-                onClick={() => setIsOptionsDetailOpen((prev) => !prev)}
-                className="flex items-center justify-between py-1 px-1.5 -mx-1.5 rounded-lg hover:bg-orange-50/70 cursor-pointer transition-colors group select-none border border-transparent hover:border-orange-100"
-                title="Cliquer pour afficher ou masquer le détail des options"
-              >
-                <div className="flex items-center gap-1.5">
-                  <span className="text-slate-500 text-[11px] group-hover:text-slate-700 font-medium">Options :</span>
-                  <span className="text-[9px] text-sama-orange font-semibold underline decoration-dotted">
-                    {isOptionsDetailOpen ? "fermer" : "voir"}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="font-bold text-slate-800 bg-slate-100 group-hover:bg-orange-100 group-hover:text-sama-orange px-2 py-0.5 rounded-md text-[10px] transition-colors">
-                    {selectedFeatures.length} sélectionnée{selectedFeatures.length > 1 ? "s" : ""}
-                  </span>
-                  <ChevronDown
-                    className={`w-3.5 h-3.5 text-slate-400 group-hover:text-sama-orange transition-transform duration-200 ${
-                      isOptionsDetailOpen ? "rotate-180" : ""
-                    }`}
-                  />
-                </div>
-              </div>
-
-              {/* Tiroir déroulant immersif listant les options sélectionnées */}
-              {isOptionsDetailOpen && (
-                <div className="pt-2 pb-1.5 px-2.5 rounded-xl bg-slate-50/90 border border-slate-200/80 space-y-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
-                  <div className="flex items-center justify-between text-[9px] font-extrabold uppercase tracking-wider text-slate-400 border-b border-slate-200/60 pb-1">
-                    <span>Options retenues ({selectedFeatures.length})</span>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setIsOptionsDetailOpen(false);
-                      }}
-                      className="text-slate-400 hover:text-slate-600 text-[9px] font-semibold cursor-pointer"
-                    >
-                      Masquer
-                    </button>
-                  </div>
-
-                  {selectedFeatures.length === 0 ? (
-                    <p className="text-[10px] text-slate-400 italic py-1">
-                      Aucune option additionnelle cochée (formule de base seule).
-                    </p>
-                  ) : (
-                    <div className="space-y-1 max-h-44 overflow-y-auto pr-0.5">
-                      {selectedFeatures.map((fId) => {
-                        const feat = websiteFeatures.find((f) => f.id === fId);
-                        if (!feat) return null;
-                        return (
-                          <div
-                            key={fId}
-                            className="flex items-center justify-between gap-1 text-[10px] p-1.5 rounded-lg bg-white border border-slate-200/70 shadow-2xs"
-                          >
-                            <div className="flex items-center gap-1.5 truncate">
-                              <Check className="w-3 h-3 text-sama-orange shrink-0 stroke-[2.5]" />
-                              <span className="font-semibold text-slate-700 truncate">{feat.label}</span>
-                            </div>
-                            <span className="text-[8px] font-bold text-sama-orange bg-orange-50 px-1.5 py-0.2 rounded shrink-0">
-                              Inclus
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
 
-            <div className="pt-2 text-[10px] text-slate-400 flex items-center gap-1.5 border-t border-slate-100">
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-              <span>Hébergement & Nom de domaine inclus 1 an</span>
+            <div className="pt-2 text-[10px] text-slate-400 space-y-1 border-t border-slate-100">
+              <div className="flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                <span>Hébergement & Nom de domaine inclus 1 an</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-sama-orange shrink-0" />
+                <span>Livraison clé en main avec accompagnement</span>
+              </div>
             </div>
           </div>
 
@@ -621,117 +513,21 @@ export const WebsiteOrderForm: React.FC = () => {
             ========================================================================= */}
         <div id="order-form-container" className="order-1 lg:order-2 lg:col-span-8 bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 lg:p-8 border border-slate-200/90 shadow-lg sm:shadow-xl">
           
-          {/* =========================================================================
-              ÉCRAN DE CONFIRMATION (MODE DÉMO)
-              ========================================================================= */}
-          {isSubmitted ? (
-            <div className="py-6 sm:py-8 text-center animate-in fade-in-50 duration-300">
-              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-4 shadow-inner">
-                <CheckCircle2 className="w-7 h-7 sm:w-8 sm:h-8" />
+          {/* Bannière d'erreur en cas d'échec de transmission */}
+          {submitError && (
+            <div className="mb-5 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs sm:text-sm flex items-start gap-3 animate-in fade-in">
+              <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="font-bold">Impossible d'enregistrer votre devis</p>
+                <p className="mt-0.5 text-xs text-rose-700">{submitError}</p>
               </div>
-
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold font-mono mb-2 border border-emerald-200">
-                Simulation validée #{generatedQuoteRef}
-              </div>
-
-              <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mb-1.5">
-                Votre devis de site internet est prêt !
-              </h3>
-
-              <p className="text-xs sm:text-sm text-slate-600 max-w-md mx-auto mb-5 leading-relaxed">
-                Merci <strong>{clientInfo.fullName}</strong>. Votre simulation pour <strong>{clientInfo.companyName}</strong> a été configurée avec succès.
-              </p>
-
-              {/* Comprehensive Recap Card */}
-              <div className="bg-slate-50 rounded-2xl p-4 sm:p-5 border border-slate-200 text-left max-w-lg mx-auto mb-6 space-y-2.5 shadow-2xs">
-                <div className="flex items-center justify-between pb-2 border-b border-slate-200">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                    Récapitulatif de votre projet
-                  </span>
-                  <span className="font-mono text-xs font-bold text-sama-orange bg-orange-50 px-2 py-0.5 rounded-md">
-                    {selectedFormula.formattedPrice}
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div>
-                    <span className="text-slate-400 block text-[10px]">Type de site :</span>
-                    <span className="font-bold text-slate-900 text-xs">
-                      {selectedType === "autre" ? otherTypeDetail : selectedTypeObj?.title}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 block text-[10px]">Formule choisie :</span>
-                    <span className="font-bold text-sama-orange text-xs">
-                      {selectedFormula.name}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 block text-[10px]">Délai indicatif :</span>
-                    <span className="font-bold text-slate-900 text-xs">
-                      {selectedDeadlineObj?.label}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 block text-[10px]">WhatsApp :</span>
-                    <span className="font-bold text-slate-900 text-xs font-mono">
-                      +221 {clientInfo.whatsappNumber}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="pt-2 border-t border-slate-200">
-                  <span className="text-slate-500 text-[10px] font-semibold block mb-1">
-                    Fonctionnalités souhaitées ({selectedFeatures.length}) :
-                  </span>
-                  <div className="flex flex-wrap gap-1">
-                    {selectedFeatures.map((fId) => {
-                      const feat = websiteFeatures.find((f) => f.id === fId);
-                      return (
-                        <span
-                          key={fId}
-                          className="px-2 py-0.5 rounded bg-white border border-slate-200 text-[10px] font-semibold text-slate-700"
-                        >
-                          ✓ {feat?.label}
-                        </span>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5 max-w-md mx-auto">
-                <a
-                  href={`https://wa.me/${siteConfig.contact.whatsapp}?text=${whatsappSummaryText}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => trackMetaPixelEvent("Contact", { method: "WhatsApp", location: "WebsiteOrderSuccess" })}
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold text-xs sm:text-sm shadow-md transition-all transform hover:scale-[1.02]"
-                >
-                  <WhatsAppIcon className="w-4 h-4 text-white shrink-0" />
-                  <span>Transmettre ce devis sur WhatsApp</span>
-                </a>
-
-                <button
-                  type="button"
-                  onClick={resetForm}
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-3 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors cursor-pointer"
-                >
-                  <RotateCcw className="w-3.5 h-3.5" />
-                  <span>Recommencer</span>
-                </button>
-              </div>
-
-              <p className="text-[10px] text-slate-400 mt-4">
-                * Mode Démo actif : Aucun enregistrement en base de données conformément à vos consignes.
-              </p>
             </div>
-          ) : (
-            <form onSubmit={handleSubmit} noValidate>
+          )}
+
+          <form onSubmit={handleSubmit} noValidate>
               
               {/* =========================================================================
-                  STEPPER PROGRESS BAR INTERACTIF EN 5 ÉTAPES
+                  STEPPER PROGRESS BAR INTERACTIF EN 4 ÉTAPES
                   100% Responsive et Cliquable
                   ========================================================================= */}
               <div className="mb-4 sm:mb-6 pb-3 sm:pb-5 border-b border-slate-100">
@@ -743,14 +539,13 @@ export const WebsiteOrderForm: React.FC = () => {
                     <span className="text-xs sm:text-sm font-black text-slate-900 tracking-tight">
                       {currentStep === 1 && "Étape 1 : Type de site"}
                       {currentStep === 2 && "Étape 2 : Formule & Budget"}
-                      {currentStep === 3 && "Étape 3 : Fonctionnalités & Options"}
-                      {currentStep === 4 && "Étape 4 : Délai de livraison"}
-                      {currentStep === 5 && "Étape 5 : Coordonnées & Devis"}
+                      {currentStep === 3 && "Étape 3 : Délai de livraison"}
+                      {currentStep === 4 && "Étape 4 : Coordonnées & Devis"}
                     </span>
                   </div>
 
                   <span className="text-[10px] sm:text-[11px] font-bold text-sama-orange font-mono bg-orange-50 px-2 py-0.5 rounded-md">
-                    {Math.round((currentStep / 5) * 100)}%
+                    {Math.round((currentStep / 4) * 100)}%
                   </span>
                 </div>
 
@@ -758,18 +553,17 @@ export const WebsiteOrderForm: React.FC = () => {
                 <div className="w-full h-1.5 sm:h-2 bg-slate-100 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-gradient-to-r from-orange-500 to-amber-500 rounded-full transition-all duration-300"
-                    style={{ width: `${(currentStep / 5) * 100}%` }}
+                    style={{ width: `${(currentStep / 4) * 100}%` }}
                   />
                 </div>
 
-                {/* 5 Interactive Stepper Buttons */}
-                <div className="grid grid-cols-5 gap-1 sm:gap-2 mt-2.5 text-center text-[10px] sm:text-xs font-bold">
+                {/* 4 Interactive Stepper Buttons */}
+                <div className="grid grid-cols-4 gap-1.5 sm:gap-2 mt-2.5 text-center text-[10px] sm:text-xs font-bold">
                   {[
                     { num: 1, full: "1. Type", short: "Type" },
                     { num: 2, full: "2. Formule", short: "Formule" },
-                    { num: 3, full: "3. Options", short: "Options" },
-                    { num: 4, full: "4. Délai", short: "Délai" },
-                    { num: 5, full: "5. Contact", short: "Contact" },
+                    { num: 3, full: "3. Délai", short: "Délai" },
+                    { num: 4, full: "4. Contact", short: "Contact" },
                   ].map((s) => {
                     const isPassed = currentStep >= s.num;
                     const isCurrent = currentStep === s.num;
@@ -779,9 +573,9 @@ export const WebsiteOrderForm: React.FC = () => {
                         key={s.num}
                         type="button"
                         onClick={() => goToStep(s.num)}
-                        className={`py-1 rounded-lg transition-all cursor-pointer truncate ${
+                        className={`py-1.5 rounded-lg transition-all cursor-pointer truncate ${
                           isCurrent
-                            ? "text-sama-orange bg-orange-50 font-black"
+                            ? "text-sama-orange bg-orange-50 font-black shadow-2xs"
                             : isPassed
                             ? "text-slate-700 hover:text-sama-orange hover:bg-slate-50 font-bold"
                             : "text-slate-300 cursor-not-allowed"
@@ -1045,95 +839,17 @@ export const WebsiteOrderForm: React.FC = () => {
               )}
 
               {/* =========================================================================
-                  ÉTAPE 3 : FONCTIONNALITÉS & OPTIONS (MULTI-CHOIX & BOUTON UNIQUE)
-                  ========================================================================= */}
-              {currentStep === 3 && (
-                <div className="space-y-3.5 sm:space-y-5 animate-in fade-in duration-200">
-                  <div>
-                    <h3 className="text-sm sm:text-lg lg:text-xl font-black text-slate-900 tracking-tight">
-                      Quelles fonctionnalités souhaitez-vous intégrer ?
-                    </h3>
-                    <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
-                      Cochez toutes les options pertinentes pour votre audience (choix multiples).
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                    {websiteFeatures.map((feature) => {
-                      const isSelected = selectedFeatures.includes(feature.id);
-
-                      return (
-                        <div
-                          key={feature.id}
-                          onClick={() => toggleFeature(feature.id)}
-                          className={`group relative p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border-2 transition-all duration-300 cursor-pointer select-none flex items-start gap-3 overflow-hidden ${
-                            isSelected
-                              ? "border-sama-orange bg-gradient-to-b from-orange-50/70 via-white to-orange-50/30 shadow-[0_4px_20px_rgba(255,107,0,0.15)] ring-2 ring-sama-orange/20 -translate-y-0.5"
-                              : "border-slate-200/90 bg-white hover:border-orange-300 hover:shadow-md hover:-translate-y-0.5"
-                          }`}
-                        >
-                          <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/25 to-transparent pointer-events-none" />
-
-                          {/* 3D Tinted Icon Box (Colored Non-White Icon) */}
-                          <div
-                            className={`relative w-11 h-11 sm:w-12 sm:h-12 rounded-2xl border flex items-center justify-center shrink-0 transition-all duration-300 group-hover:scale-110 group-hover:rotate-6 ${feature.iconBg}`}
-                          >
-                            {renderIcon(feature.iconName, `w-5 h-5 sm:w-6 sm:h-6 ${feature.iconColor}`)}
-                          </div>
-
-                          <div className="min-w-0 flex-1 relative z-10">
-                            <div className="flex items-center justify-between gap-1.5 mb-1">
-                              <span
-                                className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border ${feature.badgeClass}`}
-                              >
-                                {feature.badge}
-                              </span>
-
-                              <div
-                                className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${
-                                  isSelected
-                                    ? "border-sama-orange bg-sama-orange text-white shadow-2xs scale-105"
-                                    : "border-slate-300 bg-white group-hover:border-sama-orange/60"
-                                }`}
-                              >
-                                {isSelected && <Check className="w-3.5 h-3.5 stroke-[3] animate-in zoom-in-75" />}
-                              </div>
-                            </div>
-
-                            <h4 className="text-xs sm:text-sm font-bold text-slate-900 leading-snug group-hover:text-sama-orange transition-colors mb-0.5">
-                              {feature.label}
-                            </h4>
-                            <p className="text-[11px] text-slate-500 leading-relaxed font-normal">
-                              {feature.description}
-                            </p>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {/* Note de cadrage technique (bouton unique dans la barre de navigation basse) */}
-                  <div className="p-3 rounded-xl bg-orange-50/60 border border-orange-100/80 text-[11px] sm:text-xs text-slate-600 flex items-center gap-2.5">
-                    <HelpCircle className="w-4 h-4 text-sama-orange shrink-0" />
-                    <span>
-                      Vous pourrez ajuster et affiner toutes ces options lors de votre cadrage technique avec nos experts.
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {/* =========================================================================
-                  ÉTAPE 4 : DÉLAI SOUHAITÉ DE LIVRAISON (NOUVELLE ÉTAPE DÉDIÉE !)
+                  ÉTAPE 3 : DÉLAI SOUHAITÉ DE LIVRAISON (CLIC DIRECT AVEC TRANSITION AUTO !)
                   Séparée de l'étape de contact pour une expérience aérée et mobile-first
                   ========================================================================= */}
-              {currentStep === 4 && (
+              {currentStep === 3 && (
                 <div className="space-y-3.5 sm:space-y-5 animate-in fade-in duration-200">
                   <div>
                     <h3 className="text-sm sm:text-lg lg:text-xl font-black text-slate-900 tracking-tight">
                       Quel est le délai souhaité pour votre projet web ?
                     </h3>
                     <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
-                      👉 <strong>Cliquez sur une option pour passer directement à l'étape finale.</strong>
+                      👉 <strong>Cliquez sur une option pour passer directement aux coordonnées finales.</strong>
                     </p>
                   </div>
 
@@ -1205,10 +921,10 @@ export const WebsiteOrderForm: React.FC = () => {
               )}
 
               {/* =========================================================================
-                  ÉTAPE 5 : COORDONNÉES DU CLIENT & FINALISATION (ÉTAPE FINALE DÉDIÉE)
+                  ÉTAPE 4 : COORDONNÉES DU CLIENT & FINALISATION (ÉTAPE FINALE DÉDIÉE)
                   Uniquement le formulaire de coordonnées pour un parcours ultra-fluide
                   ========================================================================= */}
-              {currentStep === 5 && (
+              {currentStep === 4 && (
                 <div className="space-y-3.5 sm:space-y-5 animate-in fade-in duration-200">
                   <div>
                     <h3 className="text-sm sm:text-lg lg:text-xl font-black text-slate-900 tracking-tight">
@@ -1392,35 +1108,45 @@ export const WebsiteOrderForm: React.FC = () => {
                   <div className="hidden sm:block" />
                 )}
 
-                {currentStep < 5 ? (
+                {currentStep < 4 ? (
                   <button
                     type="button"
                     onClick={handleNextStep}
                     className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-sama-orange hover:bg-sama-orange-hover text-white text-xs sm:text-sm font-bold shadow-lg hover:shadow-glow-orange transition-all transform hover:-translate-y-0.5 cursor-pointer ml-auto"
                   >
                     <span>
-                      {currentStep === 3
-                        ? `Passer au choix du délai (3/5)`
-                        : currentStep === 4
-                        ? `Passer aux coordonnées (4/5)`
-                        : `Continuer (${currentStep}/5)`}
+                      {currentStep === 1
+                        ? `Passer aux formules (1/4)`
+                        : currentStep === 2
+                        ? `Passer au choix du délai (2/4)`
+                        : currentStep === 3
+                        ? `Passer aux coordonnées (3/4)`
+                        : `Continuer (${currentStep}/4)`}
                     </span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 ) : (
                   <button
                     type="submit"
-                    className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3.5 rounded-full bg-sama-orange hover:bg-sama-orange-hover text-white text-xs sm:text-base font-bold shadow-xl hover:shadow-glow-orange transition-all transform hover:-translate-y-0.5 cursor-pointer ml-auto"
+                    disabled={isSubmitting}
+                    className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3.5 rounded-full bg-sama-orange hover:bg-sama-orange-hover text-white text-xs sm:text-base font-bold shadow-xl hover:shadow-glow-orange transition-all transform hover:-translate-y-0.5 cursor-pointer ml-auto disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none"
                   >
-                    <Send className="w-4 h-4" />
-                    <span>Valider ma demande de devis</span>
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Enregistrement de votre devis...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4" />
+                        <span>Valider ma demande de devis</span>
+                      </>
+                    )}
                   </button>
                 )}
               </div>
 
             </form>
-          )}
-
         </div>
 
       </div>

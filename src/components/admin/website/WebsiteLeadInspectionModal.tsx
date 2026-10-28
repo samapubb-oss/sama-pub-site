@@ -499,32 +499,34 @@ export const WebsiteLeadInspectionModal: React.FC<WebsiteLeadInspectionModalProp
                   </p>
                 </div>
 
-                {/* Étape 3 : Options & Fonctionnalités cochées */}
-                <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-2xs space-y-2 md:col-span-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-bold text-sky-600 uppercase tracking-wider">
-                      Étape 3 · Options & Fonctionnalités cochées ({parsed.selectedFeatures.length})
-                    </span>
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                  </div>
-                  <div className="flex flex-wrap gap-2 pt-1">
-                    {parsed.selectedFeatures.map((feat) => (
-                      <span
-                        key={feat.id}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200"
-                      >
-                        <Check className="w-3.5 h-3.5 text-emerald-600" />
-                        <span>{feat.label}</span>
+                {/* Options & Fonctionnalités (si spécifiées sur d'anciens devis) */}
+                {parsed.selectedFeatures.length > 0 && (
+                  <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-2xs space-y-2 md:col-span-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold text-sky-600 uppercase tracking-wider">
+                        Options & Fonctionnalités ({parsed.selectedFeatures.length})
                       </span>
-                    ))}
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    </div>
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {parsed.selectedFeatures.map((feat) => (
+                        <span
+                          key={feat.id}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200"
+                        >
+                          <Check className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>{feat.label}</span>
+                        </span>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
-                {/* Étape 4 : Délai de livraison souhaité */}
+                {/* Délai de livraison souhaité */}
                 <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-2xs space-y-1.5">
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-bold text-sky-600 uppercase tracking-wider">
-                      Étape 4 · Délai souhaité
+                      Délai de réalisation souhaité
                     </span>
                     <Hourglass className="w-4 h-4 text-slate-400" />
                   </div>

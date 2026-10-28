@@ -259,28 +259,28 @@
   - **Centrage Absolu sur Desktop** : Disposition en grille 3 colonnes parfaitement centrée au milieu (`max-w-4xl mx-auto`), avec icônes 3D, badges et descriptifs alignés au centre de chaque carte pour une symétrie visuelle irréprochable.
   - **Défilement Automatique Continu sur Mobile (Marquee)** : Les cartes ne sont plus masquées sur smartphone ; une animation infinie fluide les fait glisser automatiquement en boucle continue avec des masques de fondu latéraux, se mettant en pause au toucher.
 - **Encart d'Assistance & Coordonnées Directes** : Bloc bleu nuit exécutif avec statut en ligne (`🟢 En ligne · Dakar`), bouton WhatsApp pulsé pleine largeur, appels et e-mails directs, et encart de récapitulatif en direct mis à jour en temps réel.
-- **Formulaire Interactif Restructuré en 5 Étapes Intuitives (`WebsiteOrderForm.tsx`)** :
+- **Formulaire Interactif Épuré en 4 Étapes Intuitives (`WebsiteOrderForm.tsx`)** :
+  - **Suppression de l'étape 3 redondante** : L'ancienne étape de fonctionnalités/options a été complètement supprimée car chaque formule (Landing Page, Site Vitrine, E-commerce, Sur-Mesure) intègre déjà nativement toutes les fonctionnalités correspondantes. Le parcours est désormais fluide et direct.
   - **Couleurs d'icônes à fort contraste (Suppression totale du blanc)** : Toutes les icônes de choix disposent de teintes thématiques vives et contrastées (*Orange SAMA PUB, Bleu tech, Vert émeraude, Violet royal, Ambre, Cyan*) intégrées dans des boîtes 3D teintées sur mesure, garantissant une lisibilité 100% nette sur fond blanc sans aucun mélange.
-  - **Barre de progression dynamique & Stepper 5 Étapes** : 5 boutons cliquables (*1. Type*, *2. Formule*, *3. Options*, *4. Délai*, *5. Contact*) avec calcul de progression à `(currentStep / 5) * 100%`.
+  - **Barre de progression dynamique & Stepper 4 Étapes** : 4 boutons cliquables (*1. Type*, *2. Formule*, *3. Délai*, *4. Contact*) avec calcul de progression à `(currentStep / 4) * 100%` parfait sur mobile et desktop.
   - **Étape 1 : Type de site (Passage automatique à l'étape 2)** :
     - Un simple clic sur une carte valide instantanément l'option et bascule vers l'étape 2 en 220ms.
   - **Étape 2 : Formule & Budget FCFA (Passage automatique à l'étape 3)** :
-    - Cartes tarifaires avec bandeau supérieur intégré, prix au format `whitespace-nowrap font-mono` et basculement automatique à l'étape 3.
-  - **Étape 3 : Fonctionnalités & Options (Multi-choix)** :
-    - Sélection libre des options souhaitées et bouton unique vers l'étape du délai (*« Passer au choix du délai (3/5) → »*).
-  - **Étape 4 : Délai de livraison souhaité (Nouvelle étape dédiée)** :
-    - Étape autonome offrant 3 cartes de délai spacieuses (*⚡ Moins de 2 semaines*, *📅 2 à 4 semaines*, *🌿 Flexible & Conseil*) avec grandes icônes 3D colorées, descriptions complètes sans troncature et basculement automatique vers l'étape 5 au clic.
-  - **Étape 5 : Coordonnées & Finalisation (Étape finale dédiée)** :
+    - Cartes tarifaires avec bandeau supérieur intégré, liste des inclusions, prix au format `whitespace-nowrap font-mono` et basculement automatique à l'étape 3 (Délai) au clic.
+  - **Étape 3 : Délai de livraison souhaité (Passage automatique à l'étape 4)** :
+    - Étape autonome offrant 3 cartes de délai spacieuses (*⚡ Moins de 2 semaines*, *📅 2 à 4 semaines*, *🌿 Flexible & Conseil*) avec grandes icônes 3D colorées, descriptions complètes sans troncature et basculement automatique vers l'étape 4 (Coordonnées) au clic.
+  - **Étape 4 : Coordonnées & Finalisation (Étape finale dédiée)** :
     - Étape finale exclusivement consacrée au formulaire de coordonnées client sans surcharge : Nom complet, Entreprise, Numéro WhatsApp sénégalais strict avec drapeau 🇸🇳 et `+221` fixe, Adresse e-mail valide et Description du projet.
     - Bouton pleine largeur d'envoi immédiat du devis.
 - **Encart Latéral « Devis en direct » Interactif & Évolutif** :
-  - Pastille dynamique avec halo pulsé clignotant (*« ● Devis en direct »*), compteur d'étape `Étape X / 5` et ligne de délai choisi intégrée.
-  - **Tiroir d'options interactif en 1 clic** : Déploie la liste des options retenues avec pastilles « Inclus » et bouton masquer.
-- **Mode Démonstration & Confirmation** :
-  - Validation sans persistance en base de données (conformément au cahier des charges).
-  - Écran de succès instantané avec identifiant de devis simulé (`#WEB-XXXX`).
-  - Carte récapitulative complète des options et du délai choisis.
-  - Bouton direct d'envoi sur WhatsApp pré-formaté et bouton pour recommencer une simulation.
+  - Pastille dynamique avec halo pulsé clignotant (*« ● Devis en direct »*), compteur d'étape `Étape X / 4` et ligne de délai choisi intégrée.
+  - Récapitulatif épuré sans option redondante avec rappel des garanties SAMA PUB (*Hébergement & Nom de domaine inclus 1 an*, *Accompagnement clé en main*).
+- **Page de Remerciement & Confirmation Dédiée (`/merci-devis-site-web`)** :
+  - **URL de confirmation autonome** : Redirection automatique sécurisée après soumission du simulateur avec jeton HMAC-SHA256 en cookie `HttpOnly` anti-fraude.
+  - **Badge de confirmation officiel** : Affichage d'un badge élégant avec pastille verte pulsée : *« Devis envoyé avec succès »*.
+  - **Identifiant & Récapitulatif projet** : Numéro de devis (`#WEB-XXXX`) intégré directement dans le bloc récapitulatif avec formule choisie, prix estimatif, délai et options.
+  - **Déclenchement unique et sécurisé du Pixel Meta (Lead)** : Déclenché une seule fois par devis avec `eventID: refNum`, mémorisation dans le `localStorage` et persistance serveur (`leads_quotes`).
+  - **Optimisation Responsive Mobile Complète** : Disposition fluide en 2 colonnes (`grid-cols-2`), typographies calibrées anti-débordement, espacements réduits, cibles tactiles $\ge 46$px, bouton WhatsApp pleine largeur et bouton de réinitialisation.
 
 ---
 
@@ -515,7 +515,14 @@ Lorsque vous intervenez sur ce projet, suivez **scrupuleusement** les règles ci
   - **Ergonomie Mobile & Lisibilité du Devis** ([`WebsiteLeadInspectionModal.tsx`](file:///c:/Users/360IQ/Documents/sama%20pu%20site/src/components/admin/website/WebsiteLeadInspectionModal.tsx)) :
     - *Numéro de devis insécable* : Le badge `#WEB-2026-XXXXXXXX` est doté de `whitespace-nowrap shrink-0` et placé sur sa propre ligne d'en-tête avec badge de statut « Prêt à envoyer », empêchant tout retour à la ligne ou écrasement vertical sur petit écran mobile (360px).
     - *Hiérarchie des titres* : Titre du projet sur sa propre ligne avec `leading-snug break-words`, lisible naturellement sans télescopage avec le badge.
-    - *Boutons d'action tactiles* : Disposition en grille optimisée sur mobile (`grid grid-cols-1 sm:flex`), avec bouton « Envoyer au client (WhatsApp) » pleine largeur en haut et boutons « Télécharger PDF » + « Régénérer » côte à côte en bas, tous calibrés à `min-h-[44px]`.
-    - *En-tête & Onglets compacts* : Nom du client tronqué proprement (`max-w-[120px] sm:max-w-none`), statut compact et onglets répartis équitablement (`flex-1`) pour une navigation sans débordement.
+- **Page de Confirmation Dédiée & Tracking Meta Pixel Lead (/merci-devis-site-web)** :
+  - **Flux de soumission serveur sécurisé** ([`src/app/api/devis-site-web/route.ts`](file:///c:/Users/360IQ/Documents/sama%20pu%20site/src/app/api/devis-site-web/route.ts)) : Validation stricte côté serveur (nom >= 2 car, téléphone sénégalais strict 9 chiffres, email), génération de la référence devis `WEB-XXXX` et d'un jeton aléatoire de 64 caractères hexadécimaux signé cryptographiquement en HMAC SHA-256 (validité 30 min), insertion en base Supabase (`leads_quotes`), et émission d'un cookie HttpOnly sécurisé `sama_devis_token` (SameSite=Lax).
+  - **Redirection complète** : Depuis le formulaire [WebsiteOrderForm.tsx](file:///c:/Users/360IQ/Documents/sama%20pu%20site/src/components/website-order/WebsiteOrderForm.tsx), redirection complète via `window.location.assign('/merci-devis-site-web?ref=' + ref)` (rechargement propre garantissant l'initialisation du Pixel Meta). Suppression totale du mode démo et désactivation du bouton pendant l'envoi (`isSubmitting`).
+  - **Protection serveur de la page de confirmation** ([`src/app/merci-devis-site-web/page.tsx`](file:///c:/Users/360IQ/Documents/sama%20pu%20site/src/app/merci-devis-site-web/page.tsx)) : Au chargement côté serveur, vérification stricte du jeton dans le cookie, de son expiration, et de la correspondance exacte avec le devis en base. Tout accès non autorisé (navigation privée sans envoi, favori, lien partagé, cookie expiré, mauvais ref) entraîne une redirection immédiate de type `replace` vers `/creation-site-internet` sans exécuter le moindre script ni déclencher aucun événement.
+  - **Déclenchement unique et infaillible du Pixel Lead** ([`MerciDevisClient.tsx`](file:///c:/Users/360IQ/Documents/sama%20pu%20site/src/app/merci-devis-site-web/MerciDevisClient.tsx)) :
+    - Déclenchement de `fbq('track', 'Lead', { content_name: 'devis_site_web', content_category: 'site_web' }, { eventID: ref })` uniquement après validation serveur.
+    - Double verrouillage anti-doublon : persistance immédiate dans `localStorage` (`sama_lead_sent_${ref}`) et mise à jour en base Supabase via [`/api/devis-site-web/mark-lead-sent`](file:///c:/Users/360IQ/Documents/sama%20pu%20site/src/app/api/devis-site-web/mark-lead-sent/route.ts). En cas de rafraîchissement ou bouton retour, la page s'affiche sans renvoyer de second événement.
+    - Aucun événement Lead n'est déclenché sur `/creation-site-internet` ni au cours des 5 étapes du formulaire.
+  - **SEO & Indexation** : Balise `<meta name="robots" content="noindex, nofollow">` native Next.js, préservant la lisibilité pour les robots sans blocage dans robots.txt.
 
 ### 9. avant de pousser quelque chose sur github demande moi l'autorisation 
