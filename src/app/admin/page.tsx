@@ -10,16 +10,22 @@ import { LeadInspectionModal } from "@/components/admin/LeadInspectionModal";
 import { WebsiteLeadsTable } from "@/components/admin/website/WebsiteLeadsTable";
 import { WebsiteAdminStatsGrid } from "@/components/admin/website/WebsiteAdminStatsGrid";
 import { WebsiteLeadInspectionModal } from "@/components/admin/website/WebsiteLeadInspectionModal";
+import { DeleteLeadConfirmModal } from "@/components/admin/DeleteLeadConfirmModal";
 import { isWebsiteLead, parseWebsiteOrderDetails } from "@/lib/website-lead-parser";
 import { AdminLockScreen } from "@/components/admin/AdminLockScreen";
 import { supabase } from "@/lib/supabase";
-import { Phone, Mail, CheckCircle2, User, Globe } from "lucide-react";
+import { Phone, Mail, CheckCircle2, User, Globe, Trash2 } from "lucide-react";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import {
   registerServiceWorker,
   sendLeadPushNotification,
 } from "@/lib/notificationService";
 import { cleanWhatsappNumber } from "@/lib/whatsapp-utils";
+import {
+  isLeadDeleted,
+  markLeadDeletedLocally,
+  removeSavedDevis,
+} from "@/lib/devis-storage";
 
 export default function AdminDashboardPage() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -42,6 +48,12 @@ export default function AdminDashboardPage() {
   const [websiteSearchTerm, setWebsiteSearchTerm] = useState("");
   const [websiteStatusFilter, setWebsiteStatusFilter] = useState("all");
 
+  // Delete Quote Confirmation State
+  const [leadToDelete, setLeadToDelete] = useState<LeadQuote | null>(null);
+  const [isDeletingLead, setIsDeletingLead] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleteToast, setDeleteToast] = useState<string | null>(null);
+
   // Check authentication on mount
   useEffect(() => {
     try {
@@ -56,18 +68,58 @@ export default function AdminDashboardPage() {
     }
   }, []);
 
+  // Fetch leads via server API (immune to stale browser JWTs / adblockers) with direct fallback
+  const loadLeadsFromServer = async (): Promise<LeadQuote[] | null> => {
+    try {
+      const res = await fetch("/api/admin/devis", {
+        method: "GET",
+        headers: {
+          "x-sama-admin-auth": "true",
+        },
+        cache: "no-store",
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json?.success && Array.isArray(json.data)) {
+          return json.data as LeadQuote[];
+        }
+      }
+    } catch {}
+
+    const { data, error } = await supabase
+      .from("leads_quotes")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (!error && data) {
+      return data;
+    }
+    return null;
+  };
+
   // Fetch leads exclusively from Supabase
   const fetchLeads = async () => {
     try {
-      const { data, error } = await supabase
-        .from("leads_quotes")
-        .select("*")
-        .order("created_at", { ascending: false });
+      // Purge d'éventuels anciens jetons Supabase Auth expirés en localStorage qui bloqueraient PostgREST
+      try {
+        for (let i = localStorage.length - 1; i >= 0; i--) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith("sb-") && key.endsWith("-auth-token")) {
+            localStorage.removeItem(key);
+          }
+        }
+      } catch {}
 
-      if (!error && data) {
-        setLeads(data);
-        if (data.length > 0 && !selectedLeadId) {
-          setSelectedLeadId(data[0].id);
+      const data = await loadLeadsFromServer();
+
+      if (data) {
+        const activeLeads = data.filter((d) => !isLeadDeleted(d));
+        setLeads(activeLeads);
+        if (activeLeads.length > 0 && !selectedLeadId) {
+          const firstAds = activeLeads.find((l) => !isWebsiteLead(l));
+          if (firstAds) {
+            setSelectedLeadId(firstAds.id);
+          }
         }
       } else {
         setLeads([]);
@@ -86,7 +138,7 @@ export default function AdminDashboardPage() {
     // 1. Initialise le Service Worker pour les notifications PWA et smartphones
     registerServiceWorker();
 
-    // 2. Écoute temps réel Supabase sur la table leads_quotes
+    // 2. Écoute temps réel Supabase sur la table leads_quotes (INSERT, UPDATE, DELETE)
     const channel = supabase
       .channel("realtime-leads-quotes")
       .on(
@@ -94,6 +146,7 @@ export default function AdminDashboardPage() {
         { event: "INSERT", schema: "public", table: "leads_quotes" },
         (payload) => {
           const newLead = payload.new as LeadQuote;
+          if (isLeadDeleted(newLead)) return;
           setLeads((prev) => {
             if (prev.some((l) => l.id === newLead.id)) return prev;
             return [newLead, ...prev];
@@ -102,23 +155,47 @@ export default function AdminDashboardPage() {
           sendLeadPushNotification(newLead);
         }
       )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "leads_quotes" },
+        (payload) => {
+          const updatedLead = payload.new as LeadQuote;
+          if (isLeadDeleted(updatedLead)) {
+            setLeads((prev) => prev.filter((l) => l.id !== updatedLead.id));
+            return;
+          }
+          setLeads((prev) =>
+            prev.map((l) => (l.id === updatedLead.id ? updatedLead : l))
+          );
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "leads_quotes" },
+        (payload) => {
+          const deletedId = (payload.old as { id?: string })?.id;
+          if (deletedId) {
+            setLeads((prev) => prev.filter((l) => l.id !== deletedId));
+          }
+        }
+      )
       .subscribe();
 
     // 3. Polling périodique (toutes les 25 secondes) en sécurité pour les mobiles en arrière-plan
     const interval = setInterval(async () => {
       try {
-        const { data, error } = await supabase
-          .from("leads_quotes")
-          .select("*")
-          .order("created_at", { ascending: false });
+        const data = await loadLeadsFromServer();
 
-        if (!error && data) {
+        if (data) {
+          const activeData = data.filter((d) => !isLeadDeleted(d));
           setLeads((prev) => {
-            const freshLeads = data.filter((d) => !prev.some((p) => p.id === d.id));
+            const freshLeads = activeData.filter(
+              (d) => !prev.some((p) => p.id === d.id)
+            );
             if (freshLeads.length > 0 && prev.length > 0) {
               sendLeadPushNotification(freshLeads[0]);
             }
-            return data;
+            return activeData;
           });
         }
       } catch (err) {
@@ -158,14 +235,94 @@ export default function AdminDashboardPage() {
         newStatus === "devis_envoye" ? "quote_sent" :
         newStatus;
 
-      await supabase
-        .from("leads_quotes")
-        .update({ status: dbStatus, updated_at: new Date().toISOString() })
-        .eq("id", leadId);
+      await fetch("/api/admin/devis", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "x-sama-admin-auth": "true",
+        },
+        body: JSON.stringify({ id: leadId, status: dbStatus }),
+      });
     } catch (e) {
       console.error("Failed to update status in Supabase:", e);
     } finally {
       setIsUpdatingStatus(false);
+    }
+  };
+
+  // Ouvre la modale de confirmation de suppression d'un devis (Campagne ou Site Web)
+  const handleRequestDeleteLead = (lead: LeadQuote) => {
+    setDeleteError(null);
+    setLeadToDelete(lead);
+  };
+
+  // Exécute la suppression définitive du devis
+  const handleConfirmDeleteLead = async () => {
+    if (!leadToDelete) return;
+    const targetId = leadToDelete.id;
+    const targetName = leadToDelete.full_name;
+
+    setIsDeletingLead(true);
+    setDeleteError(null);
+
+    try {
+      const response = await fetch(
+        `/api/admin/devis?id=${encodeURIComponent(targetId)}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            "x-sama-admin-auth": "true",
+          },
+          body: JSON.stringify({ id: targetId }),
+        }
+      );
+
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || result.success === false) {
+        throw new Error(
+          result.error || "Impossible de supprimer cette demande de devis."
+        );
+      }
+
+      // Nettoyage du cache PDF associé et mémorisation locale anti-retour
+      removeSavedDevis(targetId);
+      markLeadDeletedLocally(targetId);
+
+      // Fermeture des modales de détail si le devis supprimé était ouvert
+      const activeCampaignModalId = (inspectingLead || selectedLead)?.id;
+      if (activeCampaignModalId === targetId) {
+        setIsInspectModalOpen(false);
+        setInspectingLead(null);
+      }
+      if (selectedLeadId === targetId) {
+        setSelectedLeadId(null);
+      }
+
+      const activeWebsiteModalId = (inspectingWebsiteLead || selectedWebsiteLead)?.id;
+      if (activeWebsiteModalId === targetId) {
+        setIsWebsiteInspectModalOpen(false);
+        setInspectingWebsiteLead(null);
+      }
+      if (selectedWebsiteLeadId === targetId) {
+        setSelectedWebsiteLeadId(null);
+      }
+
+      // Retrait immédiat de l'état global
+      setLeads((prev) => prev.filter((l) => l.id !== targetId));
+      setLeadToDelete(null);
+
+      const msg = `Devis de ${targetName} supprimé avec succès.`;
+      setDeleteToast(msg);
+      setTimeout(() => {
+        setDeleteToast((curr) => (curr === msg ? null : curr));
+      }, 3500);
+    } catch (err: any) {
+      setDeleteError(
+        err.message || "Une erreur est survenue lors de la suppression."
+      );
+    } finally {
+      setIsDeletingLead(false);
     }
   };
 
@@ -507,6 +664,7 @@ export default function AdminDashboardPage() {
                   setSelectedLeadId(lead.id);
                   setIsInspectModalOpen(true);
                 }}
+                onDeleteLead={handleRequestDeleteLead}
                 searchTerm={searchTerm}
                 setSearchTerm={setSearchTerm}
                 statusFilter={statusFilter}
@@ -525,6 +683,7 @@ export default function AdminDashboardPage() {
                     setSelectedLeadId(lead.id);
                     setIsInspectModalOpen(true);
                   }}
+                  onDeleteLead={handleRequestDeleteLead}
                 />
               )}
             </>
@@ -581,6 +740,7 @@ export default function AdminDashboardPage() {
                   setSelectedWebsiteLeadId(lead.id);
                   setIsWebsiteInspectModalOpen(true);
                 }}
+                onDeleteLead={handleRequestDeleteLead}
                 searchTerm={websiteSearchTerm}
                 setSearchTerm={setWebsiteSearchTerm}
                 statusFilter={websiteStatusFilter}
@@ -696,6 +856,15 @@ export default function AdminDashboardPage() {
                             className="py-2 px-3 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
                           >
                             Voir dossier
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleRequestDeleteLead(client)}
+                            className="p-2 rounded-xl border border-rose-200 bg-rose-50/70 hover:bg-rose-600 text-rose-600 hover:text-white transition-colors cursor-pointer shrink-0"
+                            title="Supprimer ce devis"
+                            aria-label="Supprimer ce devis"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </div>
@@ -856,6 +1025,7 @@ export default function AdminDashboardPage() {
           onClose={() => setIsInspectModalOpen(false)}
           onStatusChange={handleStatusChange}
           isUpdatingStatus={isUpdatingStatus}
+          onDeleteLead={handleRequestDeleteLead}
         />
 
         {/* Detailed Client Inspection Modal (Devis Sites Web) */}
@@ -865,7 +1035,31 @@ export default function AdminDashboardPage() {
           onClose={() => setIsWebsiteInspectModalOpen(false)}
           onStatusChange={handleStatusChange}
           isUpdatingStatus={isUpdatingStatus}
+          onDeleteLead={handleRequestDeleteLead}
         />
+
+        {/* Confirmation Modal for Deleting Any Quote (Campaign or Website) */}
+        <DeleteLeadConfirmModal
+          lead={leadToDelete}
+          isOpen={Boolean(leadToDelete)}
+          isDeleting={isDeletingLead}
+          error={deleteError}
+          onConfirm={handleConfirmDeleteLead}
+          onCancel={() => {
+            if (!isDeletingLead) {
+              setLeadToDelete(null);
+              setDeleteError(null);
+            }
+          }}
+        />
+
+        {/* Toast de confirmation après suppression */}
+        {deleteToast && (
+          <div className="fixed bottom-5 right-5 z-[95] bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-xl border border-slate-800 flex items-center gap-2.5 text-xs font-semibold animate-in fade-in slide-in-from-bottom-4 duration-200">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span>{deleteToast}</span>
+          </div>
+        )}
       </div>
     </div>
   );

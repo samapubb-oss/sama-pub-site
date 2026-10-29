@@ -243,6 +243,13 @@
       - Rendu PDF haute fidélité aux normes graphiques SAMA PUB (`WebsiteDevisPdfDocument.tsx`).
       - Téléchargement direct du PDF identique à l'aperçu et transmission WhatsApp en 1 clic.
       - **Passage Automatique du Statut à « Devis envoyé »** (`quote_sent`) dès la transmission du devis au client via WhatsApp.
+- **Suppression Sécurisée des Demandes de Devis — Campagnes & Sites Web (`/api/admin/devis`, `DeleteLeadConfirmModal.tsx`)** :
+  - **Disponible sur l'ensemble du Dashboard** :
+    - Dans la **fiche détail client** (`LeadDetailCard.tsx`) affichée sur *Vue d'ensemble* et *Demandes de devis*.
+    - Dans la **modale d'inspection client Campagnes** (`LeadInspectionModal.tsx`), à la fois dans le bloc *Gestion de la demande* et dans la barre d'actions inférieure fixe.
+    - Dans la **modale d'inspection client Sites Web** (`WebsiteLeadInspectionModal.tsx`), dans le dossier client et dans la barre d'actions inférieure fixe (accessible même lorsqu'un devis PDF est déjà généré).
+    - Directement depuis les tableaux **Demandes de devis** (`LeadsTable.tsx`), **Devis Sites Web** (`WebsiteLeadsTable.tsx`) sur ordinateur et smartphone, ainsi que dans l'onglet **Clients**.
+  - **Modale de confirmation exécutive (`DeleteLeadConfirmModal.tsx`)** : Récapitulatif du client, badge distinctif (*Devis Campagne* ou *Devis Site Web*), protection contre les clics accidentels, nettoyage automatique du cache PDF associé et synchronisation temps réel Supabase (`leads_quotes`).
 - **Alias `/dashboard`** : Redirection automatique vers `/admin`.
 
 ### 13. Page Dédiée « Création de Site Internet » (`/creation-site-internet`)

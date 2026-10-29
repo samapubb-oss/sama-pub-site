@@ -43,7 +43,7 @@ export function isWebsiteLead(lead: Partial<LeadQuote>): boolean {
  * des 5 étapes du formulaire de création de site web.
  */
 export function parseWebsiteOrderDetails(lead: Partial<LeadQuote>): ParsedWebsiteOrder {
-  const rawMsg = lead.message || "";
+  const rawMsg = (lead.message || "").replace(/<!--SAMA_DELETED:[\s\S]*?-->/g, "").trim();
   let cleanDescription = rawMsg;
   let ref: string | undefined;
   let typeId = "vitrine";

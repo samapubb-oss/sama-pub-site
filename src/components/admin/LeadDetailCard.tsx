@@ -14,6 +14,7 @@ import {
   Calendar,
   Clock,
   Sparkles,
+  Trash2,
 } from "lucide-react";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import type { LeadQuote } from "./LeadsTable";
@@ -25,6 +26,7 @@ interface LeadDetailCardProps {
   onStatusChange: (leadId: string, newStatus: string) => Promise<void>;
   isUpdatingStatus?: boolean;
   onGenerateDevis?: (lead: LeadQuote) => void;
+  onDeleteLead?: (lead: LeadQuote) => void;
 }
 
 const statusOptions = [
@@ -57,6 +59,7 @@ export const LeadDetailCard: React.FC<LeadDetailCardProps> = ({
   onStatusChange,
   isUpdatingStatus = false,
   onGenerateDevis,
+  onDeleteLead,
 }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
@@ -317,6 +320,19 @@ export const LeadDetailCard: React.FC<LeadDetailCardProps> = ({
             <Mail className="w-4 h-4 text-slate-400" />
             <span>Envoyer un e-mail</span>
           </a>
+        )}
+
+        {/* Supprimer la demande de devis */}
+        {onDeleteLead && (
+          <button
+            type="button"
+            onClick={() => onDeleteLead(lead)}
+            className="sm:ml-auto inline-flex items-center justify-center gap-2 px-4 py-3 sm:py-2.5 rounded-xl border border-rose-200 bg-rose-50/70 hover:bg-rose-600 text-rose-600 hover:text-white text-xs font-bold transition-all cursor-pointer min-h-[44px] sm:min-h-0"
+            title="Supprimer définitivement cette demande de devis"
+          >
+            <Trash2 className="w-4 h-4 shrink-0" />
+            <span>Supprimer ce devis</span>
+          </button>
         )}
       </div>
     </div>

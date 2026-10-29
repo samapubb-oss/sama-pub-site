@@ -13,6 +13,7 @@ import {
   Calendar,
   Clock,
   Inbox,
+  Trash2,
 } from "lucide-react";
 import type { Database } from "@/types/database.types";
 
@@ -23,6 +24,7 @@ interface LeadsTableProps {
   selectedLeadId: string | null;
   onSelectLead: (lead: LeadQuote) => void;
   onInspectLead?: (lead: LeadQuote) => void;
+  onDeleteLead?: (lead: LeadQuote) => void;
   searchTerm: string;
   setSearchTerm: (term: string) => void;
   statusFilter: string;
@@ -139,6 +141,7 @@ export const LeadsTable: React.FC<LeadsTableProps> = ({
   selectedLeadId,
   onSelectLead,
   onInspectLead,
+  onDeleteLead,
   searchTerm,
   setSearchTerm,
   statusFilter,
@@ -381,24 +384,40 @@ export const LeadsTable: React.FC<LeadsTableProps> = ({
                 </div>
 
                 {/* Tap to view detail cue */}
-                <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between">
-                  <span className={`text-[11px] ${isSelected ? "font-bold text-sama-orange" : "text-slate-500"}`}>
+                <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
+                  <span className={`text-[11px] truncate ${isSelected ? "font-bold text-sama-orange" : "text-slate-500"}`}>
                     {isSelected ? "● Demande sélectionnée" : "Toucher pour sélectionner"}
                   </span>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onSelectLead(lead);
-                      if (onInspectLead) {
-                        onInspectLead(lead);
-                      }
-                    }}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-orange-50 hover:bg-orange-100 text-sama-orange text-xs font-bold transition-colors cursor-pointer"
-                  >
-                    <Eye className="w-3.5 h-3.5" />
-                    <span>Voir le détail</span>
-                  </button>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {onDeleteLead && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDeleteLead(lead);
+                        }}
+                        className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white border border-rose-100 transition-colors cursor-pointer"
+                        title="Supprimer cette demande de devis"
+                        aria-label="Supprimer cette demande de devis"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onSelectLead(lead);
+                        if (onInspectLead) {
+                          onInspectLead(lead);
+                        }
+                      }}
+                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-orange-50 hover:bg-orange-100 text-sama-orange text-xs font-bold transition-colors cursor-pointer min-h-[36px]"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                      <span>Voir le détail</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             );
@@ -512,24 +531,41 @@ export const LeadsTable: React.FC<LeadsTableProps> = ({
 
                     {/* Action */}
                     <td className="py-4 px-6 text-center whitespace-nowrap">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onSelectLead(lead);
-                          if (onInspectLead) {
-                            onInspectLead(lead);
-                          }
-                        }}
-                        className={`w-8 h-8 rounded-lg inline-flex items-center justify-center transition-all cursor-pointer ${
-                          isSelected
-                            ? "border-2 border-slate-900 bg-white text-slate-900 shadow-xs"
-                            : "border border-transparent bg-slate-50 hover:bg-slate-100 text-slate-400 hover:text-slate-700"
-                        }`}
-                        title="Consulter la fiche détaillée"
-                      >
-                        <Eye className="w-4 h-4 stroke-[2]" />
-                      </button>
+                      <div className="inline-flex items-center justify-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onSelectLead(lead);
+                            if (onInspectLead) {
+                              onInspectLead(lead);
+                            }
+                          }}
+                          className={`w-8 h-8 rounded-lg inline-flex items-center justify-center transition-all cursor-pointer ${
+                            isSelected
+                              ? "border-2 border-slate-900 bg-white text-slate-900 shadow-xs"
+                              : "border border-transparent bg-slate-50 hover:bg-slate-100 text-slate-400 hover:text-slate-700"
+                          }`}
+                          title="Consulter la fiche détaillée"
+                        >
+                          <Eye className="w-4 h-4 stroke-[2]" />
+                        </button>
+
+                        {onDeleteLead && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onDeleteLead(lead);
+                            }}
+                            className="w-8 h-8 rounded-lg inline-flex items-center justify-center border border-transparent bg-rose-50/70 hover:bg-rose-600 text-rose-500 hover:text-white transition-all cursor-pointer"
+                            title="Supprimer cette demande de devis"
+                            aria-label="Supprimer cette demande de devis"
+                          >
+                            <Trash2 className="w-3.5 h-3.5 stroke-[2]" />
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );

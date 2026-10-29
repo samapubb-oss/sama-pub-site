@@ -492,12 +492,29 @@ CREATE POLICY "Permettre l'insertion publique des devis"
   TO anon, authenticated
   WITH CHECK (true);
 
--- Permettre la lecture uniquement aux utilisateurs connectés / admin
+-- Permettre la lecture des devis pour le tableau de bord
 DROP POLICY IF EXISTS "Lecture des devis par utilisateurs autorises" ON public.leads_quotes;
 CREATE POLICY "Lecture des devis par utilisateurs autorises"
   ON public.leads_quotes
   FOR SELECT
-  TO authenticated
+  TO anon, authenticated
+  USING (true);
+
+-- Permettre la mise à jour des statuts et devis depuis le tableau de bord
+DROP POLICY IF EXISTS "Mise a jour autorisee des devis" ON public.leads_quotes;
+CREATE POLICY "Mise a jour autorisee des devis"
+  ON public.leads_quotes
+  FOR UPDATE
+  TO anon, authenticated
+  USING (true)
+  WITH CHECK (true);
+
+-- Permettre la suppression des demandes de devis depuis le tableau de bord
+DROP POLICY IF EXISTS "Suppression autorisee des devis" ON public.leads_quotes;
+CREATE POLICY "Suppression autorisee des devis"
+  ON public.leads_quotes
+  FOR DELETE
+  TO anon, authenticated
   USING (true);
 
 -- ==============================================================================

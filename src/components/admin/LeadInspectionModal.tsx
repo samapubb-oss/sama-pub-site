@@ -23,6 +23,7 @@ import {
   AlertCircle,
   Loader2,
   Info,
+  Trash2,
 } from "lucide-react";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import type { LeadQuote } from "./LeadsTable";
@@ -55,6 +56,7 @@ interface LeadInspectionModalProps {
   onClose: () => void;
   onStatusChange: (leadId: string, newStatus: string) => Promise<void>;
   isUpdatingStatus?: boolean;
+  onDeleteLead?: (lead: LeadQuote) => void;
 }
 
 const statusOptions = [
@@ -88,6 +90,7 @@ export const LeadInspectionModal: React.FC<LeadInspectionModalProps> = ({
   onClose,
   onStatusChange,
   isUpdatingStatus = false,
+  onDeleteLead,
 }) => {
   const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
@@ -610,6 +613,28 @@ export const LeadInspectionModal: React.FC<LeadInspectionModalProps> = ({
                   {lead.message || "Aucune description saisie par le prospect."}
                 </p>
               </div>
+
+              {/* Zone de suppression de la demande de devis */}
+              {onDeleteLead && (
+                <div className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-rose-50/50 border border-rose-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                  <div>
+                    <p className="text-xs font-bold text-slate-800">
+                      Gestion de la demande
+                    </p>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      Supprimer définitivement cette demande de devis du tableau de bord.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => onDeleteLead(lead)}
+                    className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-rose-200 bg-white hover:bg-rose-600 text-rose-600 hover:text-white text-xs font-bold transition-all cursor-pointer shrink-0 min-h-[44px] sm:min-h-0"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 shrink-0" />
+                    <span>Supprimer ce devis</span>
+                  </button>
+                </div>
+              )}
             </>
           )}
 
@@ -793,14 +818,28 @@ export const LeadInspectionModal: React.FC<LeadInspectionModalProps> = ({
             )}
           </div>
 
-          {/* Fermer la fiche */}
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-3 sm:px-5 py-2.5 sm:py-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-600 text-xs sm:text-sm font-semibold transition-colors cursor-pointer text-center shrink-0 ml-auto"
-          >
-            Fermer
-          </button>
+          {/* Supprimer & Fermer la fiche */}
+          <div className="flex items-center gap-2 shrink-0 ml-auto">
+            {onDeleteLead && (
+              <button
+                type="button"
+                onClick={() => onDeleteLead(lead)}
+                className="inline-flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl border border-rose-200 bg-rose-50/70 hover:bg-rose-600 text-rose-600 hover:text-white text-xs sm:text-sm font-bold transition-all cursor-pointer"
+                title="Supprimer cette demande de devis"
+                aria-label="Supprimer cette demande de devis"
+              >
+                <Trash2 className="w-4 h-4 shrink-0" />
+                <span className="hidden xs:inline sm:inline">Supprimer</span>
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-3 sm:px-5 py-2.5 sm:py-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-600 text-xs sm:text-sm font-semibold transition-colors cursor-pointer text-center shrink-0"
+            >
+              Fermer
+            </button>
+          </div>
         </div>
       </div>
     </div>

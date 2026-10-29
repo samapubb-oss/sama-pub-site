@@ -29,6 +29,7 @@ import {
   CreditCard,
   MessageSquare,
   ShieldCheck,
+  Trash2,
 } from "lucide-react";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import type { LeadQuote } from "@/components/admin/LeadsTable";
@@ -51,6 +52,7 @@ interface WebsiteLeadInspectionModalProps {
   onClose: () => void;
   onStatusChange: (leadId: string, newStatus: string) => Promise<void>;
   isUpdatingStatus?: boolean;
+  onDeleteLead?: (lead: LeadQuote) => void;
 }
 
 const statusOptions = [
@@ -84,6 +86,7 @@ export const WebsiteLeadInspectionModal: React.FC<WebsiteLeadInspectionModalProp
   onClose,
   onStatusChange,
   isUpdatingStatus = false,
+  onDeleteLead,
 }) => {
   const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
@@ -713,6 +716,28 @@ export const WebsiteLeadInspectionModal: React.FC<WebsiteLeadInspectionModalProp
                   </button>
                 </div>
               )}
+
+              {/* Zone de suppression de la demande de devis web */}
+              {onDeleteLead && (
+                <div className="p-3.5 sm:p-4 rounded-2xl bg-rose-50/50 border border-rose-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                  <div>
+                    <p className="text-xs font-bold text-slate-800">
+                      Gestion de la demande web
+                    </p>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      Supprimer définitivement cette demande de création de site internet du tableau de bord.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => onDeleteLead(lead)}
+                    className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-rose-200 bg-white hover:bg-rose-600 text-rose-600 hover:text-white text-xs font-bold transition-all cursor-pointer shrink-0 min-h-[44px]"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 shrink-0" />
+                    <span>Supprimer ce devis</span>
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
@@ -880,6 +905,31 @@ export const WebsiteLeadInspectionModal: React.FC<WebsiteLeadInspectionModalProp
               )}
             </div>
           )}
+        </div>
+
+        {/* Sticky Modal Footer: Suppression & Fermeture */}
+        <div className="p-3 sm:p-4 bg-slate-50/90 border-t border-slate-100 flex items-center justify-between gap-2 shrink-0">
+          {onDeleteLead ? (
+            <button
+              type="button"
+              onClick={() => onDeleteLead(lead)}
+              className="inline-flex items-center justify-center gap-1.5 px-3.5 sm:px-4 py-2.5 rounded-xl border border-rose-200 bg-rose-50/70 hover:bg-rose-600 text-rose-600 hover:text-white text-xs font-bold transition-all cursor-pointer min-h-[44px]"
+              title="Supprimer définitivement cette demande de devis"
+            >
+              <Trash2 className="w-4 h-4 shrink-0" />
+              <span>Supprimer ce devis</span>
+            </button>
+          ) : (
+            <div />
+          )}
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 sm:px-5 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-600 text-xs sm:text-sm font-semibold transition-colors cursor-pointer min-h-[44px]"
+          >
+            Fermer
+          </button>
         </div>
       </div>
     </div>
