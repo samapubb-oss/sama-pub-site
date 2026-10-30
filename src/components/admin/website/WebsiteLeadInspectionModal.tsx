@@ -36,6 +36,7 @@ import type { LeadQuote } from "@/components/admin/LeadsTable";
 import type { DevisData } from "@/types/devis";
 import { getSavedDevis, saveDevis, removeSavedDevis } from "@/lib/devis-storage";
 import { parseWebsiteOrderDetails } from "@/lib/website-lead-parser";
+import { extractExplicitWebsiteFeatures } from "@/lib/website-devis-prompt";
 import dynamic from "next/dynamic";
 import { getDevisFilename } from "@/lib/pdf-utils";
 import {
@@ -223,6 +224,7 @@ export const WebsiteLeadInspectionModal: React.FC<WebsiteLeadInspectionModalProp
           type_devis: "website",
           type_site: parsed.typeLabel,
           formule_site: parsed.formulaName,
+          options_site: extractExplicitWebsiteFeatures(lead.message || ""),
           delai_site: parsed.deadlineLabel,
         }),
       });
@@ -801,7 +803,9 @@ export const WebsiteLeadInspectionModal: React.FC<WebsiteLeadInspectionModalProp
                       <p className="text-xs text-slate-600 leading-normal">
                         Montant total :{" "}
                         <strong className="text-slate-900 font-bold">
-                          {new Intl.NumberFormat("fr-FR").format(devis.total_general || 300000)} FCFA
+                          {typeof devis.total_general === "number" && devis.total_general <= 0
+                            ? "Sur devis"
+                            : `${new Intl.NumberFormat("fr-FR").format(devis.total_general || 300000)} FCFA`}
                         </strong>{" "}
                         <span className="text-slate-400">·</span> Acompte 50% au lancement
                       </p>

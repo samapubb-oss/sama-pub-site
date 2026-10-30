@@ -149,7 +149,9 @@ export async function POST(req: NextRequest) {
     }
 
     const logoDataUri = getLogoDataUri();
-    const docInstance = React.createElement(DevisPdfDocument, {
+    const isWeb = devis.type_devis === "website" || Boolean(devis.formule_site);
+    const docComponent = isWeb ? WebsiteDevisPdfDocument : DevisPdfDocument;
+    const docInstance = React.createElement(docComponent, {
       devis,
       logoUrl: logoDataUri,
     });

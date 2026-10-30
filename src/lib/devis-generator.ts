@@ -1,4 +1,9 @@
 import type { DevisData, DevisGenerationRequest } from "@/types/devis";
+import { parseWebsiteOrderDetails } from "@/lib/website-lead-parser";
+import {
+  resolveWebsiteCatalogSelection,
+  sanitizeWebsiteQuoteText,
+} from "@/lib/website-devis-prompt";
 
 /**
  * Extraction du montant numérique du budget mensuel
@@ -244,49 +249,59 @@ export function generateDynamicDevisFromLead(
 
 /**
  * Générateur dynamique autonome spécifique pour les demandes de création de site internet.
- * Garantit un devis 100% conforme aux règles commerciales SAMA PUB Web.
+ * Garantit un devis 100% personnalisé et cohérent avec les descriptions et options du formulaire.
  */
 export function generateDynamicWebsiteDevis(
   body: DevisGenerationRequest | any,
   baseUrl?: string
 ): DevisData {
   const alertes: string[] = [];
-  let isFiable = true;
+  const isFiable = true;
+
+  // Si l'objet reçu provient directement de la base Supabase (contient lead.message brut), on le parse proprement
+  const rawMessageField = String(body.message || body.description || "");
+  const hasEmbeddedMetadata =
+    Boolean(body.message) ||
+    rawMessageField.includes("<!--WEBSITE_ORDER_DATA:") ||
+    rawMessageField.includes("[Détails devis");
+
+  const parsedLead = hasEmbeddedMetadata ? parseWebsiteOrderDetails(body) : null;
 
   let cleanedEntreprise = (body.entreprise || body.company_name || "").trim();
-  if (cleanedEntreprise.includes("@") || cleanedEntreprise.toLowerCase().endsWith(".com")) {
+  if (
+    cleanedEntreprise.includes("@") ||
+    cleanedEntreprise.toLowerCase().endsWith(".com") ||
+    cleanedEntreprise.toLowerCase() === "particulier"
+  ) {
     cleanedEntreprise = "";
   }
 
   const clientName = body.nom_complet || body.full_name || "Client";
-  const cleanDescription = (body.description || body.message || "").trim();
+  const cleanDescription = (
+    parsedLead ? parsedLead.cleanDescription : body.description || ""
+  )
+    .replace(/<!--[\s\S]*?-->/g, "")
+    .replace(/\[Détails devis\s*:[^\]]*\]/gi, "")
+    .trim();
 
-  // Extraction des métadonnées du site web
-  const rawMsg = body.description || body.message || "";
-  let formulaName = body.formule_site || "Site Vitrine";
-  let typeLabel = body.type_site || "Site vitrine";
-  let deadlineLabel = body.delai_site || "Standard (10 à 14 jours)";
-  let priceFCFA = 300000;
+  // Résolution exacte du Type de site et de la Formule définis dans le formulaire
+  const catalog = resolveWebsiteCatalogSelection({
+    typeId: parsedLead?.typeId,
+    typeSite: body.type_site || parsedLead?.typeLabel,
+    formulaId: parsedLead?.formulaId,
+    formuleSite: body.formule_site || parsedLead?.formulaName,
+    service: body.service || body.service_requested,
+    rawMessage: rawMessageField,
+    explicitOptions: Array.isArray(body.options_site) ? body.options_site : undefined,
+  });
 
-  // Détection du prix d'après la formule
-  const srv = (body.service || body.service_requested || "").toLowerCase();
+  const typeTitle = catalog.typeTitle;
+  const formulaName = catalog.formulaName;
+  const deadlineLabel =
+    body.delai_site || parsedLead?.deadlineLabel || "2 à 4 semaines";
+
+  let priceFCFA = catalog.priceFCFA;
   const rawBudget = (body.budget_mensuel || body.budget_range || "").toLowerCase();
-
-  if (srv.includes("basique") || formulaName.toLowerCase().includes("basique")) {
-    formulaName = "Site Basique";
-    priceFCFA = 150000;
-  } else if (srv.includes("premium") || srv.includes("commerce") || formulaName.toLowerCase().includes("premium")) {
-    formulaName = "Site Premium E-commerce";
-    priceFCFA = 650000;
-  } else if (srv.includes("sur-mesure") || srv.includes("sur mesure") || formulaName.toLowerCase().includes("sur-mesure")) {
-    formulaName = "Site Sur-Mesure";
-    priceFCFA = 0; // Sur devis
-  } else {
-    formulaName = "Site Vitrine";
-    priceFCFA = 300000;
-  }
-
-  // Si un montant précis est mentionné dans le budget
   const budgetDigits = rawBudget.replace(/\D/g, "");
   if (budgetDigits && parseInt(budgetDigits, 10) >= 100000 && priceFCFA === 0) {
     priceFCFA = parseInt(budgetDigits, 10);
@@ -295,14 +310,19 @@ export function generateDynamicWebsiteDevis(
   const tranche1 = priceFCFA > 0 ? Math.round(priceFCFA * 0.5) : 0;
   const tranche2 = priceFCFA > 0 ? priceFCFA - tranche1 : 0;
 
-  // Titre personnalisé
-  let titreDevis = `Création de ${formulaName}`;
+  // Liste exacte des options définies dans le formulaire pour cette formule (+ options explicites éventuelles)
+  const allOptions = Array.from(
+    new Set([...catalog.formulaOptions, ...catalog.explicitExtraOptions])
+  );
+
+  // Titre personnalisé selon le type de site choisi et l'entreprise ou la demande du client
+  let titreDevis = `Création de ${typeTitle} (${formulaName})`;
   if (cleanedEntreprise) {
-    titreDevis = `Création de ${formulaName} — ${cleanedEntreprise}`;
+    titreDevis = `Création de ${typeTitle} — ${cleanedEntreprise}`;
   } else if (cleanDescription.length >= 10 && !cleanDescription.toLowerCase().includes("test")) {
-    const firstPhrase = cleanDescription.split(/[.!?\n]/)[0].trim().slice(0, 45);
+    const firstPhrase = cleanDescription.split(/[.!?\n]/)[0].trim().slice(0, 48);
     if (firstPhrase.length >= 8) {
-      titreDevis = `Conception Web — ${firstPhrase}`;
+      titreDevis = `Création de ${typeTitle} — ${firstPhrase}`;
     }
   }
 
@@ -314,14 +334,29 @@ export function generateDynamicWebsiteDevis(
   const devisPdfUrl = body.id && baseUrl ? `${baseUrl}/api/devis-pdf?id=${body.id}&type=website` : "";
   const linkLine = devisPdfUrl ? `\n\n📄 Vous pouvez consulter et télécharger votre devis officiel (PDF) directement ici :\n${devisPdfUrl}` : "";
 
-  const introduction = `Bonjour ${clientName}, suite à votre demande sur notre site pour la création de votre site internet (${formulaName}), l'agence SAMA PUB à Dakar a le plaisir de vous transmettre cette proposition commerciale clé en main adaptée à vos objectifs.`;
+  const hasClientNeed =
+    cleanDescription.length >= 8 &&
+    !cleanDescription.toLowerCase().startsWith("création de site internet professionnel");
 
-  const missionDesc = `L'agence SAMA PUB prend en charge l'intégralité de la conception, du design UX/UI, du développement et de la mise en ligne de votre site web. Le projet comprend une architecture moderne Mobile-First, l'optimisation pour le référencement Google au Sénégal, l'intégration de vos canaux de contact direct (WhatsApp, formulaire) ainsi qu'une formation d'une heure pour piloter votre site en totale autonomie.`;
+  const projectSummary = hasClientNeed
+    ? cleanDescription.slice(0, 350)
+    : `${typeTitle} : ${catalog.typeDescription}`;
+
+  const introduction = hasClientNeed
+    ? `Bonjour ${clientName}, suite à votre demande concernant votre projet (« ${cleanDescription.length > 90 ? cleanDescription.slice(0, 87) + "..." : cleanDescription} »), l'agence SAMA PUB à Dakar a le plaisir de vous présenter ce devis pour la réalisation de votre ${typeTitle} selon la formule ${formulaName}.`
+    : `Bonjour ${clientName}, suite à votre demande pour la création de votre ${typeTitle} (formule ${formulaName}), l'agence SAMA PUB à Dakar a le plaisir de vous transmettre cette proposition commerciale conforme à vos choix.`;
+
+  // Explication claire et personnalisée de ce qui sera réalisé dans le site, fidèle au type et à la formule choisis
+  const missionDesc = sanitizeWebsiteQuoteText(
+    hasClientNeed
+      ? `Réalisation de votre ${typeTitle.toLowerCase()} pour répondre précisément à votre besoin (« ${cleanDescription.length > 160 ? cleanDescription.slice(0, 157) + "..." : cleanDescription} »). Conformément au type de site sélectionné (${catalog.typeDescription}) et à la formule ${formulaName} (${catalog.formulaDescription}), SAMA PUB assure la conception graphique et la mise en place exacte des éléments prévus ci-dessous.`
+      : `Réalisation de votre ${typeTitle.toLowerCase()} : ${catalog.typeDescription} ${catalog.formulaDescription} SAMA PUB assure la conception graphique et le déploiement clé en main des éléments définis dans la formule ${formulaName}.`
+  );
 
   const lines = [
     {
-      designation: `Conception & Développement : ${formulaName}`,
-      description: `Développement web sur-mesure, design responsive, intégration des contenus et optimisation de la vitesse. Inclus : nom de domaine (.sn ou .com) et hébergement cloud SSL offert 1 an.`,
+      designation: `${typeTitle} — Formule ${formulaName}`,
+      description: `${catalog.typeDescription} Options comprises : ${allOptions.join(" · ")}.`,
       quantite: 1,
       prix_unitaire: priceFCFA,
       total: priceFCFA,
@@ -339,16 +374,17 @@ export function generateDynamicWebsiteDevis(
     },
     service: `Création de site internet (${formulaName})`,
     titre_devis: titreDevis,
-    introduction: introduction,
-    description_projet: cleanDescription.slice(0, 300) || "Création d'un site web moderne et performant pour accélérer la visibilité et les conversions.",
+    introduction,
+    description_projet: projectSummary,
     mission_description: missionDesc,
     lignes: lines,
+    options_site: allOptions,
     total_honoraires: priceFCFA,
     budget_publicitaire_recommande: 0,
     tranche_1_prestation: tranche1,
     tranche_2_prestation: tranche2,
     total_general: priceFCFA,
-    notes: "Inclusions officielles SAMA PUB : Nom de domaine et hébergement haute performance sécurisé SSL offerts la première année. Propriété intégrale du site et des accès administratifs cédée au client dès la mise en ligne. Formation d'une heure offerte.",
+    notes: "Éléments inclus (Offert) : Nom de domaine et hébergement pendant 1 an, Design Mobile-First responsive. Propriété intégrale du site et des accès administratifs cédée au client à la livraison.",
     validite: "15 jours à compter de la date d'émission",
     conditions_paiement: "Modalités de paiement : 50% d'acompte à la commande / validation du projet, et 50% restant à la livraison finale et mise en ligne.",
     message_whatsapp: `Bonjour ${clientName},\n\nL'agence SAMA PUB a préparé votre devis officiel pour votre projet (« ${titreDevis} »).${linkLine}\n\nLe document PDF haute fidélité est joint ci-dessous.\n\nRestant à votre disposition pour planifier le lancement des travaux,\nL'équipe SAMA PUB Dakar`,
@@ -358,7 +394,7 @@ export function generateDynamicWebsiteDevis(
     numero_devis: numeroDevis,
     date_generation: new Date().toISOString(),
     type_devis: "website",
-    type_site: typeLabel,
+    type_site: typeTitle,
     formule_site: formulaName,
     delai_site: deadlineLabel,
   };

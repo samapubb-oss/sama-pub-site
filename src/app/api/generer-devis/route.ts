@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { DEVIS_SYSTEM_PROMPT } from "@/lib/devis-config";
-import { WEBSITE_DEVIS_SYSTEM_PROMPT } from "@/lib/website-devis-prompt";
+import {
+  WEBSITE_DEVIS_SYSTEM_PROMPT,
+  resolveWebsiteCatalogSelection,
+  sanitizeWebsiteQuoteText,
+} from "@/lib/website-devis-prompt";
 import { generateDynamicWebsiteDevis } from "@/lib/devis-generator";
 import type { DevisData, DevisGenerationRequest } from "@/types/devis";
 
@@ -362,22 +366,59 @@ export async function POST(req: NextRequest) {
             ? "claude-3-5-sonnet-latest"
             : rawModel;
 
-        const payloadForClaude = {
-          id: body.id || (isWebsiteOrder ? "WEB-" : "DEV-") + Date.now(),
-          nom_complet: body.nom_complet.slice(0, 100),
-          entreprise: (body.entreprise || "").slice(0, 150),
-          whatsapp: body.whatsapp.slice(0, 30),
-          email: (body.email || "").slice(0, 100),
-          service: body.service.slice(0, 50),
-          budget_mensuel: (body.budget_mensuel || "").slice(0, 50),
-          description: description,
-          date_envoi: body.date_envoi || new Date().toISOString().slice(0, 10),
-          heure_envoi: body.heure_envoi || "10:00",
-          type_devis: isWebsiteOrder ? "website" : "ads",
-          type_site: body.type_site || "",
-          formule_site: body.formule_site || "",
-          delai_site: body.delai_site || "",
-        };
+        const websiteCatalog = isWebsiteOrder
+          ? resolveWebsiteCatalogSelection({
+              typeSite: body.type_site,
+              formuleSite: body.formule_site,
+              service: body.service,
+              rawMessage: description,
+              explicitOptions: body.options_site,
+            })
+          : null;
+
+        const officialWebsiteOptions = websiteCatalog
+          ? Array.from(
+              new Set([
+                ...websiteCatalog.formulaOptions,
+                ...websiteCatalog.explicitExtraOptions,
+              ])
+            )
+          : [];
+
+        const payloadForClaude = isWebsiteOrder && websiteCatalog
+          ? {
+              id: body.id || "WEB-" + Date.now(),
+              nom_complet: body.nom_complet.slice(0, 100),
+              entreprise: (body.entreprise || "").slice(0, 150),
+              whatsapp: body.whatsapp.slice(0, 30),
+              email: (body.email || "").slice(0, 100),
+              service: body.service.slice(0, 80),
+              budget_mensuel: (body.budget_mensuel || "").slice(0, 50),
+              description: description,
+              date_envoi: body.date_envoi || new Date().toISOString().slice(0, 10),
+              heure_envoi: body.heure_envoi || "10:00",
+              type_devis: "website",
+              type_site: websiteCatalog.typeTitle,
+              description_type_site_formulaire: websiteCatalog.typeDescription,
+              formule_site: websiteCatalog.formulaName,
+              description_formule_formulaire: websiteCatalog.formulaDescription,
+              options_exactes_du_formulaire: officialWebsiteOptions,
+              prix_formule_fcfa: websiteCatalog.priceFCFA,
+              delai_site: body.delai_site || "2 à 4 semaines",
+            }
+          : {
+              id: body.id || "DEV-" + Date.now(),
+              nom_complet: body.nom_complet.slice(0, 100),
+              entreprise: (body.entreprise || "").slice(0, 150),
+              whatsapp: body.whatsapp.slice(0, 30),
+              email: (body.email || "").slice(0, 100),
+              service: body.service.slice(0, 50),
+              budget_mensuel: (body.budget_mensuel || "").slice(0, 50),
+              description: description,
+              date_envoi: body.date_envoi || new Date().toISOString().slice(0, 10),
+              heure_envoi: body.heure_envoi || "10:00",
+              type_devis: "ads",
+            };
 
         const response = await anthropic.messages.create({
           model,
@@ -394,27 +435,55 @@ export async function POST(req: NextRequest) {
         const textBlock = response.content.find((block) => block.type === "text");
         if (textBlock && textBlock.type === "text") {
           const parsed = parseClaudeJson(textBlock.text);
-          if (isWebsiteOrder) {
-            // Recalcul strict des tranches pour les sites web (50% / 50%)
-            const totalHon = typeof parsed.total_honoraires === "number" && parsed.total_honoraires > 0
-              ? parsed.total_honoraires
-              : typeof parsed.total_general === "number" && parsed.total_general > 0
-              ? parsed.total_general
-              : 300000;
-            const tranche1 = Math.round(totalHon * 0.5);
-            const tranche2 = totalHon - tranche1;
+          if (isWebsiteOrder && websiteCatalog) {
+            // Tarif officiel de la formule choisie (ou sur devis = 0 si Sur-Mesure sans montant saisi)
+            let totalHon = websiteCatalog.priceFCFA;
+            if (totalHon === 0) {
+              const budgetDigits = (body.budget_mensuel || "").replace(/\D/g, "");
+              if (budgetDigits && parseInt(budgetDigits, 10) >= 100000) {
+                totalHon = parseInt(budgetDigits, 10);
+              }
+            }
+            const tranche1 = totalHon > 0 ? Math.round(totalHon * 0.5) : 0;
+            const tranche2 = totalHon > 0 ? totalHon - tranche1 : 0;
 
             finalizedDevis = {
               ...parsed,
               type_devis: "website",
-              type_site: body.type_site || parsed.type_site || "Site vitrine",
-              formule_site: body.formule_site || parsed.formule_site || "Site Vitrine",
-              delai_site: body.delai_site || parsed.delai_site || "Standard (10 à 14 jours)",
+              type_site: websiteCatalog.typeTitle,
+              formule_site: websiteCatalog.formulaName,
+              delai_site: body.delai_site || parsed.delai_site || "2 à 4 semaines",
+              options_site: officialWebsiteOptions,
+              titre_devis: sanitizeWebsiteQuoteText(
+                parsed.titre_devis || `Création de ${websiteCatalog.typeTitle}`
+              ),
+              introduction: sanitizeWebsiteQuoteText(parsed.introduction || ""),
+              description_projet: sanitizeWebsiteQuoteText(
+                parsed.description_projet || description || websiteCatalog.typeDescription
+              ),
+              mission_description: sanitizeWebsiteQuoteText(
+                parsed.mission_description ||
+                  `${websiteCatalog.typeTitle} : ${websiteCatalog.typeDescription} ${websiteCatalog.formulaDescription}`
+              ),
+              lignes: [
+                {
+                  designation: `${websiteCatalog.typeTitle} — Formule ${websiteCatalog.formulaName}`,
+                  description: `${websiteCatalog.typeDescription} Options comprises : ${officialWebsiteOptions.join(" · ")}.`,
+                  quantite: 1,
+                  prix_unitaire: totalHon,
+                  total: totalHon,
+                },
+              ],
+              notes:
+                "Éléments inclus (Offert) : Nom de domaine et hébergement pendant 1 an, Design Mobile-First responsive. Propriété intégrale du site cédée au client à la livraison.",
               total_honoraires: totalHon,
               budget_publicitaire_recommande: 0,
               tranche_1_prestation: tranche1,
               tranche_2_prestation: tranche2,
               total_general: totalHon,
+              message_whatsapp: sanitizeWebsiteQuoteText(parsed.message_whatsapp || ""),
+              email_objet: sanitizeWebsiteQuoteText(parsed.email_objet || ""),
+              email_corps: sanitizeWebsiteQuoteText(parsed.email_corps || ""),
             };
           } else {
             finalizedDevis = sanitizeAndRecalculateTotals(parsed, metaBudget, description);

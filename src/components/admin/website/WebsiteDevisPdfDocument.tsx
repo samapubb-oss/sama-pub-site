@@ -11,6 +11,10 @@ import {
 import type { DevisData } from "@/types/devis";
 import { formatFcfa, formatDateFr } from "@/lib/pdf-utils";
 import { SAMA_AGENCY_INFO } from "@/lib/devis-config";
+import {
+  resolveWebsiteCatalogSelection,
+  sanitizeWebsiteQuoteText,
+} from "@/lib/website-devis-prompt";
 
 // URLs CDN stables pour polices TrueType
 const ROBOTO_REGULAR_URL =
@@ -314,26 +318,72 @@ const styles = StyleSheet.create({
   },
   tableRow: {
     flexDirection: "row",
-    paddingVertical: 6,
+    paddingVertical: 7,
     paddingHorizontal: 8,
     borderBottomWidth: 0.8,
     borderBottomColor: COLORS.slate100,
     backgroundColor: COLORS.white,
-    alignItems: "center",
+    alignItems: "flex-start",
   },
   tdDesc: {
     flex: 1,
+    paddingRight: 8,
   },
   tdItemTitle: {
-    fontSize: 7.8,
+    fontSize: 8,
     fontFamily: "Roboto",
     fontWeight: "bold",
     color: COLORS.slate900,
   },
+  tdTypeLine: {
+    fontSize: 6.9,
+    fontFamily: "Roboto",
+    fontWeight: "bold",
+    color: COLORS.cyan,
+    marginTop: 2.5,
+  },
   tdItemSubtitle: {
     fontSize: 6.8,
-    color: COLORS.slate500,
-    marginTop: 1.5,
+    color: COLORS.slate600,
+    marginTop: 2.5,
+    lineHeight: 1.3,
+  },
+  optionsBox: {
+    marginTop: 5,
+    paddingTop: 4,
+    borderTopWidth: 0.6,
+    borderTopColor: COLORS.slate200,
+  },
+  optionsHeading: {
+    fontSize: 6.5,
+    fontFamily: "Roboto",
+    fontWeight: "bold",
+    color: COLORS.navy,
+    textTransform: "uppercase",
+    marginBottom: 2.5,
+  },
+  optionsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+  },
+  optionItem: {
+    width: "50%",
+    flexDirection: "row",
+    alignItems: "flex-start",
+    paddingRight: 6,
+    marginBottom: 2,
+  },
+  optionDot: {
+    fontSize: 6.8,
+    fontFamily: "Roboto",
+    fontWeight: "bold",
+    color: COLORS.orange,
+    marginRight: 3,
+  },
+  optionText: {
+    flex: 1,
+    fontSize: 6.5,
+    color: COLORS.slate700,
     lineHeight: 1.25,
   },
   tdPrice: {
@@ -503,13 +553,53 @@ export const WebsiteDevisPdfDocument: React.FC<WebsiteDevisPdfDocumentProps> = (
   const clientPhone = devis.client?.whatsapp || "";
   const clientEmail = devis.client?.email || "";
 
-  const totalHon = devis.total_honoraires || devis.total_general || 300000;
-  const tranche1 = devis.tranche_1_prestation || Math.round(totalHon * 0.5);
-  const tranche2 = devis.tranche_2_prestation || (totalHon - tranche1);
+  // Résolution exacte du type de site et des options de la formule choisis dans le formulaire
+  const catalog = resolveWebsiteCatalogSelection({
+    typeSite: devis.type_site,
+    formuleSite: devis.formule_site,
+    service: devis.service,
+    explicitOptions: devis.options_site,
+  });
 
-  const formuleName = devis.formule_site || "Site Vitrine";
-  const typeLabel = devis.type_site || "Site vitrine";
-  const delaiLabel = devis.delai_site || "Standard (10 à 14 jours)";
+  const formuleName = catalog.formulaName;
+  const typeLabel = catalog.typeTitle;
+  const delaiLabel = devis.delai_site || "2 à 4 semaines";
+
+  const rawTotal =
+    typeof devis.total_honoraires === "number"
+      ? devis.total_honoraires
+      : typeof devis.total_general === "number"
+      ? devis.total_general
+      : catalog.priceFCFA;
+
+  const isSurDevis = rawTotal <= 0;
+  const totalHon = isSurDevis ? 0 : rawTotal;
+  const tranche1 = isSurDevis
+    ? 0
+    : devis.tranche_1_prestation || Math.round(totalHon * 0.5);
+  const tranche2 = isSurDevis
+    ? 0
+    : devis.tranche_2_prestation || totalHon - tranche1;
+
+  const optionsList = (
+    Array.isArray(devis.options_site) && devis.options_site.length > 0
+      ? devis.options_site.map(sanitizeWebsiteQuoteText)
+      : catalog.formulaOptions
+  ).filter(
+    (opt) =>
+      !opt.toLowerCase().includes("formation personnalisée") &&
+      !opt.toLowerCase().includes("garantie technique")
+  );
+
+  const clientProjectText = sanitizeWebsiteQuoteText(
+    devis.description_projet ||
+      devis.introduction ||
+      `${typeLabel} : ${catalog.typeDescription}`
+  );
+
+  const realizationText = sanitizeWebsiteQuoteText(
+    devis.mission_description || catalog.formulaDescription
+  );
 
   return (
     <Document title={`Devis SAMA PUB — ${devis.numero_devis || "Web"}`} author="SAMA PUB Dakar">
@@ -549,7 +639,7 @@ export const WebsiteDevisPdfDocument: React.FC<WebsiteDevisPdfDocumentProps> = (
           <View style={styles.titleBarLeft}>
             <Text style={styles.docTypeTag}>PROPOSITION COMMERCIALE · CONCEPTION WEB</Text>
             <Text style={styles.titleBarHeading}>
-              {devis.titre_devis || `Création de ${formuleName}`}
+              {sanitizeWebsiteQuoteText(devis.titre_devis || `Création de ${typeLabel} (${formuleName})`)}
             </Text>
           </View>
           <View style={styles.devisRefBox}>
@@ -593,15 +683,15 @@ export const WebsiteDevisPdfDocument: React.FC<WebsiteDevisPdfDocumentProps> = (
           <View style={styles.projectBox}>
             <Text style={styles.boxHeader}>Spécifications Techniques</Text>
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Formule :</Text>
-              <Text style={styles.infoValue}>{formuleName}</Text>
-            </View>
-            <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Type de site :</Text>
               <Text style={styles.infoValue}>{typeLabel}</Text>
             </View>
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Délai estimé :</Text>
+              <Text style={styles.infoLabel}>Formule :</Text>
+              <Text style={styles.infoValue}>{formuleName}</Text>
+            </View>
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Délai choisi :</Text>
               <Text style={styles.infoValue}>{delaiLabel}</Text>
             </View>
             <View style={styles.infoRow}>
@@ -611,45 +701,59 @@ export const WebsiteDevisPdfDocument: React.FC<WebsiteDevisPdfDocumentProps> = (
           </View>
         </View>
 
-        {/* 4. Synthèse du projet et du besoin exprimé */}
+        {/* 4. Synthèse personnalisée du besoin exprimé par le client */}
         <View style={styles.descriptionBanner}>
-          <Text style={styles.descriptionHeading}>Projet & Objectif Commercial</Text>
-          <Text style={styles.descriptionText}>
-            {devis.description_projet || devis.introduction || "Conception d'une présence web haut de gamme conçue pour valoriser votre marque et générer des prises de contact directes."}
-          </Text>
+          <Text style={styles.descriptionHeading}>Demande & Besoin du Client</Text>
+          <Text style={styles.descriptionText}>{clientProjectText}</Text>
         </View>
 
-        {/* 5. Tableau des prestations */}
+        {/* 5. Tableau du contenu du site et des prestations à réaliser */}
         <View style={styles.table}>
           <View style={styles.tableHeader}>
-            <Text style={[styles.thCell, { flex: 1 }]}>DÉSIGNATION DE LA PRESTATION WEB</Text>
+            <Text style={[styles.thCell, { flex: 1 }]}>
+              CONTENU DU SITE & PRESTATIONS À RÉALISER
+            </Text>
             <Text style={[styles.thCell, styles.tdPrice]}>TOTAL NET</Text>
           </View>
 
           <View style={styles.tableRow}>
             <View style={styles.tdDesc}>
               <Text style={styles.tdItemTitle}>
-                {formuleName} — Conception, Design UX/UI & Développement
+                {typeLabel} — Formule {formuleName}
               </Text>
-              <Text style={styles.tdItemSubtitle}>
-                {devis.mission_description || "Architecture responsive Mobile-First, intégration graphique sur-mesure, boutons WhatsApp direct, formulaire anti-spam, référencement Google Dakar & Sénégal, sécurisation SSL et formation 1h."}
+              <Text style={styles.tdTypeLine}>
+                {typeLabel} : {catalog.typeDescription}
               </Text>
+              <Text style={styles.tdItemSubtitle}>{realizationText}</Text>
+
+              <View style={styles.optionsBox}>
+                <Text style={styles.optionsHeading}>
+                  Contenu & options prévus dans votre formule :
+                </Text>
+                <View style={styles.optionsGrid}>
+                  {optionsList.map((opt, idx) => (
+                    <View key={idx} style={styles.optionItem}>
+                      <Text style={styles.optionDot}>•</Text>
+                      <Text style={styles.optionText}>{opt}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
             </View>
-            <Text style={styles.tdPrice}>{formatFcfa(totalHon)}</Text>
+            <Text style={styles.tdPrice}>
+              {isSurDevis ? "Sur devis" : formatFcfa(totalHon)}
+            </Text>
           </View>
         </View>
 
-        {/* 6. Inclusions Offertes la première année */}
+        {/* 6. Éléments inclus & Offerts */}
         <View style={styles.inclusionsBox}>
           <Text style={styles.inclusionsTitle}>
-            ✓ Inclusions officielles offertes par SAMA PUB (Valeur 90 000 FCFA offerte) :
+            Inclusions officielles SAMA PUB — Offert :
           </Text>
           <View style={styles.inclusionsRow}>
-            <Text style={styles.inclusionTag}>Nom de domaine (.sn ou .com) inclus 1 an</Text>
-            <Text style={styles.inclusionTag}>Hébergement cloud haute performance SSL inclus 1 an</Text>
-            <Text style={styles.inclusionTag}>Design Mobile-First ultra-rapide</Text>
-            <Text style={styles.inclusionTag}>Formation personnalisée 1h offerte</Text>
-            <Text style={styles.inclusionTag}>Garantie technique & Support 30 jours</Text>
+            <Text style={styles.inclusionTag}>Nom de domaine et hébergement pendant 1 an</Text>
+            <Text style={styles.inclusionTag}>Design Mobile-First responsive</Text>
           </View>
         </View>
 
@@ -657,23 +761,27 @@ export const WebsiteDevisPdfDocument: React.FC<WebsiteDevisPdfDocumentProps> = (
         <View style={styles.financialSummary}>
           <View style={styles.financialRow}>
             <Text style={styles.financialLabel}>Montant forfaitaire de la création web :</Text>
-            <Text style={styles.financialValue}>{formatFcfa(totalHon)}</Text>
+            <Text style={styles.financialValue}>
+              {isSurDevis ? "Sur devis" : formatFcfa(totalHon)}
+            </Text>
           </View>
           <View style={styles.financialRow}>
             <Text style={styles.financialLabel}>1ère tranche — Acompte au démarrage (50%) :</Text>
             <Text style={[styles.financialValue, { color: COLORS.cyan }]}>
-              {formatFcfa(tranche1)}
+              {isSurDevis ? "50% au démarrage" : formatFcfa(tranche1)}
             </Text>
           </View>
           <View style={styles.financialRow}>
             <Text style={styles.financialLabel}>2ème tranche — Solde à la mise en ligne (50%) :</Text>
             <Text style={[styles.financialValue, { color: COLORS.cyan }]}>
-              {formatFcfa(tranche2)}
+              {isSurDevis ? "50% à la mise en ligne" : formatFcfa(tranche2)}
             </Text>
           </View>
           <View style={styles.financialRowTotal}>
             <Text style={styles.totalLabel}>TOTAL À RÉGLER (FCFA) :</Text>
-            <Text style={styles.totalValue}>{formatFcfa(totalHon)}</Text>
+            <Text style={styles.totalValue}>
+              {isSurDevis ? "Sur devis" : formatFcfa(totalHon)}
+            </Text>
           </View>
         </View>
 

@@ -33,7 +33,7 @@ export default function CreationSiteInternetPage() {
   return (
     <>
       {/* Sticky Navigation Header */}
-      <Header />
+      <Header hideQuoteButton />
 
       <main className="flex-1 bg-slate-50 min-h-screen">
         

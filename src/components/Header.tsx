@@ -6,7 +6,11 @@ import { usePathname } from "next/navigation";
 import { Logo } from "./Logo";
 import { Send, Menu, X } from "lucide-react";
 
-export const Header: React.FC = () => {
+interface HeaderProps {
+  hideQuoteButton?: boolean;
+}
+
+export const Header: React.FC<HeaderProps> = ({ hideQuoteButton = false }) => {
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -224,24 +228,28 @@ export const Header: React.FC = () => {
           </nav>
 
           {/* Right Action CTA Button -> Dedicated /devis Page */}
-          <div className="hidden sm:flex items-center">
-            <Link
-              href="/devis"
-              className="inline-flex items-center justify-center gap-2 px-6 py-2.5 text-sm font-bold text-white bg-sama-orange hover:bg-sama-orange-hover rounded-full shadow-md hover:shadow-glow-orange transition-all duration-200 transform hover:-translate-y-0.5 cursor-pointer"
-            >
-              <Send className="w-4 h-4 fill-current" />
-              <span>Demander un devis</span>
-            </Link>
-          </div>
+          {!hideQuoteButton && (
+            <div className="hidden sm:flex items-center">
+              <Link
+                href="/devis"
+                className="inline-flex items-center justify-center gap-2 px-6 py-2.5 text-sm font-bold text-white bg-sama-orange hover:bg-sama-orange-hover rounded-full shadow-md hover:shadow-glow-orange transition-all duration-200 transform hover:-translate-y-0.5 cursor-pointer"
+              >
+                <Send className="w-4 h-4 fill-current" />
+                <span>Demander un devis</span>
+              </Link>
+            </div>
+          )}
 
           {/* Mobile Menu Toggle & Devis Button */}
           <div className="flex items-center gap-2 lg:hidden">
-            <Link
-              href="/devis"
-              className="sm:hidden inline-flex items-center justify-center px-4 py-1.5 text-xs font-bold text-white bg-sama-orange hover:bg-sama-orange-hover active:scale-95 rounded-full shadow-sm transition-all"
-            >
-              Devis
-            </Link>
+            {!hideQuoteButton && (
+              <Link
+                href="/devis"
+                className="sm:hidden inline-flex items-center justify-center px-4 py-1.5 text-xs font-bold text-white bg-sama-orange hover:bg-sama-orange-hover active:scale-95 rounded-full shadow-sm transition-all"
+              >
+                Devis
+              </Link>
+            )}
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -278,16 +286,18 @@ export const Header: React.FC = () => {
             })}
           </nav>
 
-          <div className="pt-3 border-t border-slate-100">
-            <Link
-              href="/devis"
-              onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center justify-center gap-2 w-full py-3 text-sm font-bold text-white bg-sama-orange hover:bg-sama-orange-hover active:scale-95 rounded-xl shadow-md transition-all"
-            >
-              <Send className="w-4 h-4 fill-current" />
-              <span>Demander un devis</span>
-            </Link>
-          </div>
+          {!hideQuoteButton && (
+            <div className="pt-3 border-t border-slate-100">
+              <Link
+                href="/devis"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center justify-center gap-2 w-full py-3 text-sm font-bold text-white bg-sama-orange hover:bg-sama-orange-hover active:scale-95 rounded-xl shadow-md transition-all"
+              >
+                <Send className="w-4 h-4 fill-current" />
+                <span>Demander un devis</span>
+              </Link>
+            </div>
+          )}
         </div>
       )}
     </header>
