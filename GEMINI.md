@@ -243,6 +243,32 @@
       - Rendu PDF haute fidélité aux normes graphiques SAMA PUB (`WebsiteDevisPdfDocument.tsx`).
       - Téléchargement direct du PDF identique à l'aperçu et transmission WhatsApp en 1 clic.
       - **Passage Automatique du Statut à « Devis envoyé »** (`quote_sent`) dès la transmission du devis au client via WhatsApp.
+- **Section Dédiée « Création Vidéo IA — Kling 4.0 » (`/admin` onglet `videos`, `VideoCreationSection.tsx`, `PromptMentionInput.tsx`, `/api/videos/*`, `/api/webhooks/higgsfield`)** :
+  - **Moteur IA Kling 4.0 via Higgsfield API** : Génération de vidéos publicitaires et cinématiques haute conversion (3 à 30 secondes) en 720p HD et 1080p Full HD.
+  - **Multi-Références Étendues (Jusqu'à 10 images & 5 vidéos MP4)** :
+    - Modèle officiel `kling-video/v4.0/reference-to-video` permettant d'injecter jusqu'à 10 images de référence (`@image_1` à `@image_10`) et jusqu'à 5 vidéos sources (`@video_1` à `@video_5`).
+    - Format d'image étendu : `Auto` (`adaptive`), `16:9` (Paysage), `9:16` (Vertical / Reels / TikTok), `1:1` (Carré) et `21:9` (Cinéma).
+  - **Mode Cadres Clés (Séquence Chronologique jusqu'à 10 images)** :
+    - Modèle officiel `kling-video/v4.0/image-to-video` combinant 1 image de départ, jusqu'à 8 images intermédiaires en sélection multiple et 1 image de fin.
+  - **Coloration en Direct des Mentions `@` & Menu Intelligent (`PromptMentionInput.tsx`)** :
+    - Coloration dynamique sans décalage de curseur : `@image_X` en orange vif, `@video_X` en vert émeraude.
+    - Menu contextuel instantané dès la frappe de `@` ou via le bouton `@ Média` : insertion en 1 clic d'un média existant ou importation directe d'un nouveau fichier JPG/PNG/WebP/MP4 insérant automatiquement la balise correspondante.
+    - Pastilles interactives de remplissage sous le prompt en cas de référence non encore liée.
+    - Suppression du plafond bloquant : prompt étendu jusqu'à 25 000 caractères avec typographie 14px anti-zoom Safari iOS.
+  - **Architecture Serveur Sécurisée & Téléversement Pré-signé S3** :
+    - Route dédiée `/api/videos/upload-url` générant des URLs S3 pré-signées temporaires, permettant l'envoi direct de médias volumineux (jusqu'à 15 Mo par image et 100 Mo par vidéo MP4) sans heurter la limite de 4,5 Mo des fonctions serverless Vercel.
+    - Clés d'API Higgsfield (`HF_API_KEY_ID`, `HF_API_KEY_SECRET`, `HF_CREDENTIALS`) strictement confinées côté serveur (jamais exposées au client).
+    - Soumission asynchrone non-bloquante avec en-tête `Idempotency-Key` unique anti-double facturation et route webhook `/api/webhooks/higgsfield` vérifiant les signatures cryptographiques HMAC-SHA256 Standard Webhooks.
+  - **Garde-fous Coûts & Quotas Exécutifs** :
+    - Calcul du coût estimé avant lancement selon la grille officielle Higgsfield (avec ou sans vidéo d'entrée).
+    - Plafonds configurables par variables serveur : durée max par vidéo, nombre max de générations/jour, budget mensuel en dollars avec message explicatif en français.
+  - **Galerie & Suivi en Direct (Rétention 7 jours & Téléchargement Local)** :
+    - Polling client non-bloquant toutes les 4s avec détection de fin et notification sonore/visuelle.
+    - Lecteur vidéo 16:9 intégré avec téléchargement direct du fichier `.mp4` sur l'appareil local avant l'expiration des 7 jours de conservation Higgsfield.
+  - **Expérience Mobile-First Immersive** :
+    - Sélecteur d'onglets dédié sur smartphone `[✦ Studio Création | 🎬 Galerie & Rendu (N)]` avec indicateur pulsé lors des calculs en cours.
+    - Redirection automatique vers la galerie lors du lancement de la génération pour un suivi direct sans défilement excessif.
+    - En-tête et bannières compacts d'une seule ligne éliminant tout encombrement vertical.
 - **Suppression Sécurisée des Demandes de Devis — Campagnes & Sites Web (`/api/admin/devis`, `DeleteLeadConfirmModal.tsx`)** :
   - **Disponible sur l'ensemble du Dashboard** :
     - Dans la **fiche détail client** (`LeadDetailCard.tsx`) affichée sur *Vue d'ensemble* et *Demandes de devis*.
