@@ -6,6 +6,7 @@ import {
   Home,
   FileText,
   Globe,
+  Video,
   Users,
   Briefcase,
   Settings,
@@ -19,6 +20,7 @@ interface AdminSidebarProps {
   setCurrentTab: (tab: string) => void;
   pendingCount?: number;
   pendingWebsiteCount?: number;
+  activeVideoCount?: number;
   isMobileOpen?: boolean;
   onCloseMobile?: () => void;
 }
@@ -28,6 +30,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
   setCurrentTab,
   pendingCount = 0,
   pendingWebsiteCount = 0,
+  activeVideoCount = 0,
   isMobileOpen = false,
   onCloseMobile,
 }) => {
@@ -51,6 +54,13 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
       icon: Globe,
       badgeCount: pendingWebsiteCount,
       accent: "sky",
+    },
+    {
+      id: "videos",
+      label: "Création vidéo",
+      icon: Video,
+      badgeCount: activeVideoCount,
+      accent: "orange",
     },
     {
       id: "clients",

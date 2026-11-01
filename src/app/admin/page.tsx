@@ -11,6 +11,7 @@ import { WebsiteLeadsTable } from "@/components/admin/website/WebsiteLeadsTable"
 import { WebsiteAdminStatsGrid } from "@/components/admin/website/WebsiteAdminStatsGrid";
 import { WebsiteLeadInspectionModal } from "@/components/admin/website/WebsiteLeadInspectionModal";
 import { DeleteLeadConfirmModal } from "@/components/admin/DeleteLeadConfirmModal";
+import { VideoCreationSection } from "@/components/admin/videos/VideoCreationSection";
 import { isWebsiteLead, parseWebsiteOrderDetails } from "@/lib/website-lead-parser";
 import { AdminLockScreen } from "@/components/admin/AdminLockScreen";
 import { supabase } from "@/lib/supabase";
@@ -53,6 +54,16 @@ export default function AdminDashboardPage() {
   const [isDeletingLead, setIsDeletingLead] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deleteToast, setDeleteToast] = useState<string | null>(null);
+
+  // Video Studio (Kling 4.0) State
+  const [hasOpenedVideos, setHasOpenedVideos] = useState(false);
+  const [activeVideoCount, setActiveVideoCount] = useState(0);
+
+  useEffect(() => {
+    if (currentTab === "videos") {
+      setHasOpenedVideos(true);
+    }
+  }, [currentTab]);
 
   // Check authentication on mount
   useEffect(() => {
@@ -603,6 +614,7 @@ export default function AdminDashboardPage() {
         setCurrentTab={setCurrentTab}
         pendingCount={stats.pending}
         pendingWebsiteCount={websiteStats.pending}
+        activeVideoCount={activeVideoCount}
         isMobileOpen={isMobileMenuOpen}
         onCloseMobile={() => setIsMobileMenuOpen(false)}
       />
@@ -746,6 +758,15 @@ export default function AdminDashboardPage() {
                 statusFilter={websiteStatusFilter}
                 setStatusFilter={setWebsiteStatusFilter}
                 onExportCSV={handleExportWebsiteCSV}
+              />
+            </div>
+          )}
+
+          {/* TAB CRÉATION VIDÉO (Kling 4.0 via Higgsfield — maintenu monté après ouverture pour suivi continu) */}
+          {(hasOpenedVideos || currentTab === "videos") && (
+            <div className={currentTab === "videos" ? "block" : "hidden"}>
+              <VideoCreationSection
+                onActiveJobsCountChange={setActiveVideoCount}
               />
             </div>
           )}

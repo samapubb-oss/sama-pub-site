@@ -315,6 +315,81 @@ export type Database = {
         }
         Relationships: []
       }
+      video_generations: {
+        Row: {
+          aspect_ratio: string | null
+          cancel_url: string | null
+          correlation_id: string | null
+          created_at: string
+          created_by: string
+          duration: number
+          end_image_url: string | null
+          error_message: string | null
+          estimated_cost_usd: number
+          expires_at: string | null
+          id: string
+          idempotency_key: string
+          input_image_url: string | null
+          mode: string
+          model_id: string
+          prompt: string | null
+          request_id: string | null
+          resolution: string
+          status: string
+          status_url: string | null
+          updated_at: string
+          video_url: string | null
+        }
+        Insert: {
+          aspect_ratio?: string | null
+          cancel_url?: string | null
+          correlation_id?: string | null
+          created_at?: string
+          created_by?: string
+          duration: number
+          end_image_url?: string | null
+          error_message?: string | null
+          estimated_cost_usd?: number
+          expires_at?: string | null
+          id?: string
+          idempotency_key: string
+          input_image_url?: string | null
+          mode: string
+          model_id: string
+          prompt?: string | null
+          request_id?: string | null
+          resolution: string
+          status?: string
+          status_url?: string | null
+          updated_at?: string
+          video_url?: string | null
+        }
+        Update: {
+          aspect_ratio?: string | null
+          cancel_url?: string | null
+          correlation_id?: string | null
+          created_at?: string
+          created_by?: string
+          duration?: number
+          end_image_url?: string | null
+          error_message?: string | null
+          estimated_cost_usd?: number
+          expires_at?: string | null
+          id?: string
+          idempotency_key?: string
+          input_image_url?: string | null
+          mode?: string
+          model_id?: string
+          prompt?: string | null
+          request_id?: string | null
+          resolution?: string
+          status?: string
+          status_url?: string | null
+          updated_at?: string
+          video_url?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
